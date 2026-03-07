@@ -1,9 +1,9 @@
 import { useState, useEffect, useCallback } from "react";
 import { useParams } from "react-router-dom";
-import { Trophy } from "@phosphor-icons/react";
 import { api } from "../api/client.js";
 import CategoryCard from "../components/CategoryCard.js";
 import PickModal from "../components/PickModal.js";
+import OscarStatuette from "../components/OscarStatuette.js";
 
 interface Nominee {
   nomineeId: string;
@@ -80,7 +80,7 @@ export default function Categories() {
       <div className="page-content">
         <div className="page-header animate-fade-in-up">
           <h1 className="page-title" style={styles.title}>
-            <Trophy size={24} weight="fill" style={{ color: "var(--gold)" }} />
+            <OscarStatuette size={28} />
             Categories
           </h1>
           {!loading && (

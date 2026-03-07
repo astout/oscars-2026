@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useAuthContext } from "../auth/AuthContext.js";
 import { Navigate } from "react-router-dom";
+import OscarStatuette from "../components/OscarStatuette.js";
 
 type AuthView = "sign-in" | "sign-up" | "confirm" | "forgot" | "reset";
 
@@ -68,6 +69,9 @@ export default function Auth() {
   return (
     <div style={styles.container}>
       <div style={styles.card}>
+        <div style={{ display: "flex", justifyContent: "center", marginBottom: "var(--space-4)" }}>
+          <OscarStatuette size={64} />
+        </div>
         <h1 style={styles.title}>Oscars 2026</h1>
         <p style={styles.subtitle}>98th Academy Awards</p>
 
