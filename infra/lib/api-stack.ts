@@ -61,7 +61,6 @@ export class ApiStack extends cdk.Stack {
           apigateway.CorsHttpMethod.PUT,
           apigateway.CorsHttpMethod.PATCH,
           apigateway.CorsHttpMethod.DELETE,
-          apigateway.CorsHttpMethod.OPTIONS,
         ],
         allowHeaders: ["Authorization", "Content-Type"],
       },
@@ -74,7 +73,13 @@ export class ApiStack extends cdk.Stack {
 
     httpApi.addRoutes({
       path: "/api/{proxy+}",
-      methods: [apigateway.HttpMethod.ANY],
+      methods: [
+        apigateway.HttpMethod.GET,
+        apigateway.HttpMethod.POST,
+        apigateway.HttpMethod.PUT,
+        apigateway.HttpMethod.PATCH,
+        apigateway.HttpMethod.DELETE,
+      ],
       integration,
       authorizer,
     });
