@@ -129,9 +129,11 @@ export default function CeremonyMode() {
   return (
     <div className="page">
       <div className="page-content">
+        <div style={{ display: "flex", justifyContent: "center", paddingTop: "var(--space-4)" }}>
+          <OscarStatuette size={80} />
+        </div>
         <div className="page-header animate-fade-in-up">
-          <h1 className="page-title" style={styles.title}>
-            <OscarStatuette size={28} />
+          <h1 className="page-title">
             Ceremony Mode
           </h1>
           {!loading && (
@@ -294,11 +296,6 @@ export default function CeremonyMode() {
 }
 
 const styles: Record<string, React.CSSProperties> = {
-  title: {
-    display: "flex",
-    alignItems: "center",
-    gap: "var(--space-2)",
-  },
   error: {
     color: "var(--status-wrong)",
     fontSize: "var(--text-sm)",

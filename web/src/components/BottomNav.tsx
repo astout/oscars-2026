@@ -1,7 +1,6 @@
 import { useLocation, useNavigate } from "react-router-dom";
-import { ChartBar, Sparkle, GearSix } from "@phosphor-icons/react";
+import { Trophy, ChartBar, Sparkle, GearSix } from "@phosphor-icons/react";
 import type { Icon } from "@phosphor-icons/react";
-import OscarStatuette from "./OscarStatuette.js";
 
 interface BottomNavProps {
   academyId: string;
@@ -10,12 +9,11 @@ interface BottomNavProps {
 interface TabDef {
   label: string;
   path: string;
-  icon?: Icon;
-  custom?: true;
+  icon: Icon;
 }
 
 const tabs: TabDef[] = [
-  { label: "Categories", path: "categories", custom: true },
+  { label: "Categories", path: "categories", icon: Trophy },
   { label: "Leaderboard", path: "leaderboard", icon: ChartBar },
   { label: "Bonus", path: "bonus", icon: Sparkle },
   { label: "Settings", path: "settings", icon: GearSix },
@@ -37,14 +35,7 @@ export default function BottomNav({ academyId }: BottomNavProps) {
             className={`nav-tab ${isActive ? "nav-tab-active" : ""}`}
             onClick={() => navigate(fullPath)}
           >
-            {tab.custom ? (
-              <OscarStatuette
-                size={22}
-                style={{ opacity: isActive ? 1 : 0.5 }}
-              />
-            ) : (
-              tab.icon && <tab.icon size={22} weight={isActive ? "fill" : "regular"} />
-            )}
+            <tab.icon size={22} weight={isActive ? "fill" : "regular"} />
             <span>{tab.label}</span>
           </button>
         );

@@ -3,6 +3,7 @@ import { useParams } from "react-router-dom";
 import { Sparkle } from "@phosphor-icons/react";
 import { api } from "../api/client.js";
 import BonusCard from "../components/BonusCard.js";
+import OscarStatuette from "../components/OscarStatuette.js";
 
 interface Wager {
   userId: string;
@@ -106,6 +107,9 @@ export default function BonusEvents() {
 
   return (
     <div className="page animate-fade-in-up">
+      <div style={{ display: "flex", justifyContent: "center", paddingTop: "var(--space-4)" }}>
+        <OscarStatuette size={80} />
+      </div>
       <div className="page-header">
         <h1 className="page-title">Bonus Events</h1>
         <p className="page-subtitle">{events.length} {events.length === 1 ? "event" : "events"}</p>

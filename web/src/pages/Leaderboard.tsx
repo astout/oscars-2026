@@ -4,6 +4,7 @@ import { Trophy, ArrowClockwise } from "@phosphor-icons/react";
 import { api } from "../api/client.js";
 import { useAuthContext } from "../auth/AuthContext.js";
 import LeaderboardRow from "../components/LeaderboardRow.js";
+import OscarStatuette from "../components/OscarStatuette.js";
 
 interface LeaderboardEntry {
   userId: string;
@@ -97,6 +98,9 @@ export default function Leaderboard() {
 
   return (
     <div className="page animate-fade-in-up">
+      <div style={{ display: "flex", justifyContent: "center", paddingTop: "var(--space-4)" }}>
+        <OscarStatuette size={80} />
+      </div>
       <div className="page-header" style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <h1 className="page-title">Leaderboard</h1>
         <button

@@ -70,7 +70,7 @@ export default function Auth() {
     <div style={styles.container}>
       <div style={styles.card}>
         <div style={{ display: "flex", justifyContent: "center", marginBottom: "var(--space-4)" }}>
-          <OscarStatuette size={64} />
+          <OscarStatuette size={120} />
         </div>
         <h1 style={styles.title}>Oscars 2026</h1>
         <p style={styles.subtitle}>98th Academy Awards</p>

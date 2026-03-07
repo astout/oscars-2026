@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { useParams } from "react-router-dom";
+import { Trophy } from "@phosphor-icons/react";
 import { api } from "../api/client.js";
 import CategoryCard from "../components/CategoryCard.js";
 import PickModal from "../components/PickModal.js";
@@ -78,9 +79,12 @@ export default function Categories() {
   return (
     <div className="page">
       <div className="page-content">
+        <div style={{ display: "flex", justifyContent: "center", paddingTop: "var(--space-4)" }}>
+          <OscarStatuette size={80} />
+        </div>
         <div className="page-header animate-fade-in-up">
           <h1 className="page-title" style={styles.title}>
-            <OscarStatuette size={28} />
+            <Trophy size={24} weight="fill" style={{ color: "var(--gold)" }} />
             Categories
           </h1>
           {!loading && (
