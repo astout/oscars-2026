@@ -7,6 +7,7 @@ import picks from "./routes/picks.js";
 import bonus from "./routes/bonus.js";
 import leaderboard from "./routes/leaderboard.js";
 import admin from "./routes/admin.js";
+import users from "./routes/users.js";
 
 const app = new Hono();
 
@@ -17,6 +18,7 @@ app.get("/api/health", (c) => c.json({ status: "ok" }));
 app.use("/api/*", authMiddleware);
 
 // Mount routes
+app.route("/api/v1/users", users);
 app.route("/api/v1/academies", academies);
 app.route("/api/v1/categories", categories);
 app.route("/api/v1/academies", picks);

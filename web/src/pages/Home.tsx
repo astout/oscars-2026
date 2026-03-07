@@ -1,4 +1,8 @@
+import { useAuthContext } from "../auth/AuthContext.js";
+
 export default function Home() {
+  const { email, signOut } = useAuthContext();
+
   return (
     <div
       style={{
@@ -29,6 +33,30 @@ export default function Home() {
       >
         98th Academy Awards — March 15, 2026
       </p>
+      <p
+        style={{
+          fontSize: "var(--text-sm)",
+          color: "var(--text-muted)",
+          marginTop: "var(--space-4)",
+        }}
+      >
+        Signed in as {email}
+      </p>
+      <button
+        onClick={signOut}
+        style={{
+          background: "none",
+          border: "0.5px solid var(--border)",
+          borderRadius: "var(--radius-md)",
+          color: "var(--text-secondary)",
+          padding: "var(--space-2) var(--space-4)",
+          fontSize: "var(--text-sm)",
+          cursor: "pointer",
+          fontFamily: "var(--font-body)",
+        }}
+      >
+        Sign Out
+      </button>
     </div>
   );
 }
