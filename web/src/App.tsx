@@ -8,6 +8,7 @@ import WatchPartyDetail from "./pages/WatchPartyDetail.js";
 import Categories from "./pages/Categories.js";
 import Leaderboard from "./pages/Leaderboard.js";
 import BonusEvents from "./pages/BonusEvents.js";
+import CeremonyMode from "./pages/CeremonyMode.js";
 import PartyLayout from "./components/PartyLayout.js";
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -27,15 +28,14 @@ export default function App() {
       <Route path="/create" element={<ProtectedRoute><CreateWatchParty /></ProtectedRoute>} />
       <Route path="/join" element={<ProtectedRoute><JoinWatchParty /></ProtectedRoute>} />
 
-      {/* Party detail / settings */}
-      <Route path="/party/:academyId/settings" element={<ProtectedRoute><WatchPartyDetail /></ProtectedRoute>} />
-
       {/* Party pages with bottom nav */}
       <Route path="/party/:academyId" element={<ProtectedRoute><PartyLayout /></ProtectedRoute>}>
         <Route index element={<Navigate to="categories" replace />} />
         <Route path="categories" element={<Categories />} />
         <Route path="leaderboard" element={<Leaderboard />} />
         <Route path="bonus" element={<BonusEvents />} />
+        <Route path="settings" element={<WatchPartyDetail />} />
+        <Route path="ceremony" element={<CeremonyMode />} />
       </Route>
 
       <Route path="*" element={<Navigate to="/" replace />} />

@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Crown, Copy, Check, Users, Link, X, UserPlus } from "@phosphor-icons/react";
+import { Crown, Copy, Check, Users, Link, X, UserPlus, SignOut, Lock, LockOpen } from "@phosphor-icons/react";
 import { api } from "../api/client.js";
 import { useAuthContext } from "../auth/AuthContext.js";
 import type { Academy, AcademyMember } from "../types/academy.js";
@@ -8,7 +8,7 @@ import type { Academy, AcademyMember } from "../types/academy.js";
 export default function WatchPartyDetail() {
   const { academyId } = useParams<{ academyId: string }>();
   const navigate = useNavigate();
-  const { userId } = useAuthContext();
+  const { userId, signOut } = useAuthContext();
 
   const [party, setParty] = useState<Academy | null>(null);
   const [members, setMembers] = useState<AcademyMember[]>([]);
@@ -66,9 +66,6 @@ export default function WatchPartyDetail() {
   if (loading) {
     return (
       <div className="page">
-        <div style={{ padding: "var(--space-4)", borderBottom: "0.5px solid var(--border)" }}>
-          <div className="skeleton" style={{ height: 24, width: 200 }} />
-        </div>
         <div className="page-content">
           <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-3)" }}>
             {[1, 2, 3].map((i) => (
@@ -83,22 +80,6 @@ export default function WatchPartyDetail() {
   if (error && !party) {
     return (
       <div className="page">
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: "var(--space-3)",
-            padding: "var(--space-4)",
-            borderBottom: "0.5px solid var(--border)",
-          }}
-        >
-          <button className="btn btn-ghost" onClick={() => navigate(-1)} aria-label="Go back">
-            <ArrowLeft size={20} />
-          </button>
-          <h1 style={{ fontSize: "var(--text-lg)", fontWeight: "var(--weight-semibold)", color: "var(--text-primary)" }}>
-            Watch Party
-          </h1>
-        </div>
         <div className="page-content">
           <p style={{ color: "var(--status-wrong)", fontSize: "var(--text-sm)", textAlign: "center" }}>
             {error}
@@ -112,34 +93,6 @@ export default function WatchPartyDetail() {
 
   return (
     <div className="page animate-fade-in-up">
-      {/* Header */}
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          gap: "var(--space-3)",
-          padding: "var(--space-4)",
-          borderBottom: "0.5px solid var(--border)",
-        }}
-      >
-        <button className="btn btn-ghost" onClick={() => navigate(-1)} aria-label="Go back">
-          <ArrowLeft size={20} />
-        </button>
-        <h1
-          style={{
-            fontSize: "var(--text-lg)",
-            fontWeight: "var(--weight-semibold)",
-            color: "var(--text-primary)",
-            flex: 1,
-            overflow: "hidden",
-            textOverflow: "ellipsis",
-            whiteSpace: "nowrap",
-          }}
-        >
-          {party.name}
-        </h1>
-      </div>
-
       <div className="page-content">
         {/* Invite Link Card */}
         <div className="card" style={{ marginBottom: "var(--space-6)" }}>
@@ -163,6 +116,49 @@ export default function WatchPartyDetail() {
             )}
           </button>
         </div>
+
+        {/* Host Controls */}
+        {isHost && (
+          <div className="card" style={{ marginBottom: "var(--space-6)", border: "0.5px solid var(--border-gold)" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "var(--space-2)", marginBottom: "var(--space-3)" }}>
+              <Lock size={16} weight="bold" style={{ color: "var(--gold)" }} />
+              <p style={{ fontSize: "var(--text-sm)", fontWeight: "var(--weight-medium)", color: "var(--text-secondary)" }}>
+                Host Controls
+              </p>
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-2)" }}>
+              <button
+                className={`btn ${party.allLocked ? "btn-primary" : "btn-secondary"} btn-full`}
+                onClick={async () => {
+                  setActionLoading("lock");
+                  try {
+                    const endpoint = party.allLocked ? "unlock" : "lock";
+                    await api.post(`/academies/${academyId}/${endpoint}`);
+                    setParty({ ...party, allLocked: !party.allLocked });
+                  } catch (err) {
+                    setError(err instanceof Error ? err.message : "Failed");
+                  } finally {
+                    setActionLoading(null);
+                  }
+                }}
+                disabled={actionLoading === "lock"}
+              >
+                {party.allLocked ? (
+                  <><LockOpen size={18} weight="bold" /> Unlock All Picks</>
+                ) : (
+                  <><Lock size={18} weight="bold" /> Lock All Picks</>
+                )}
+              </button>
+              <button
+                className="btn btn-secondary btn-full"
+                onClick={() => navigate(`/party/${academyId}/ceremony`)}
+              >
+                <Crown size={18} weight="bold" style={{ color: "var(--gold)" }} />
+                Ceremony Mode
+              </button>
+            </div>
+          </div>
+        )}
 
         {error && (
           <p style={{ color: "var(--status-wrong)", fontSize: "var(--text-sm)", marginBottom: "var(--space-4)" }}>
@@ -286,6 +282,18 @@ export default function WatchPartyDetail() {
               </div>
             ))}
           </div>
+        </div>
+
+        {/* Sign Out */}
+        <div style={{ marginTop: "var(--space-8)", paddingTop: "var(--space-6)", borderTop: "0.5px solid var(--border-subtle)" }}>
+          <button
+            className="btn btn-ghost btn-full"
+            onClick={signOut}
+            style={{ color: "var(--status-wrong)", gap: "var(--space-2)" }}
+          >
+            <SignOut size={18} weight="bold" />
+            Sign Out
+          </button>
         </div>
       </div>
     </div>
