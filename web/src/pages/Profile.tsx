@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { SignOut, Check } from "@phosphor-icons/react";
+import { SignOut, Check, CaretLeft } from "@phosphor-icons/react";
 import { api } from "../api/client.js";
 import { useAuthContext } from "../auth/AuthContext.js";
 import OscarStatuette from "../components/OscarStatuette.js";
@@ -92,6 +92,17 @@ export default function Profile() {
 
   return (
     <div className="page animate-fade-in-up">
+      <div style={{ padding: "var(--space-2) var(--space-3)", borderBottom: "0.5px solid var(--border-subtle)" }}>
+        <button
+          className="tap-target"
+          onClick={() => navigate(-1)}
+          style={{ display: "flex", alignItems: "center", gap: "var(--space-1)", background: "none", border: "none", color: "var(--gold)", fontSize: "var(--text-sm)", fontFamily: "var(--font-body)", fontWeight: 500, cursor: "pointer", padding: "var(--space-1) var(--space-2)", borderRadius: "var(--radius-md)" }}
+          aria-label="Go back"
+        >
+          <CaretLeft size={18} weight="bold" />
+          Back
+        </button>
+      </div>
       <div style={{ display: "flex", justifyContent: "center", paddingTop: "var(--space-4)" }}>
         <OscarStatuette size={80} />
       </div>
