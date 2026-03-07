@@ -67,6 +67,21 @@ export async function setWinner(
   );
 }
 
+export async function clearWinner(categoryId: string): Promise<void> {
+  await db.send(
+    new UpdateCommand({
+      TableName: TABLE_NAME,
+      Key: { PK: "YEAR#2026", SK: `CATEGORY#${categoryId}` },
+      UpdateExpression:
+        "SET winnerId = :null, resolvedAt = :null, locked = :locked",
+      ExpressionAttributeValues: {
+        ":null": null,
+        ":locked": true,
+      },
+    })
+  );
+}
+
 export async function setCategoryLocked(
   categoryId: string,
   locked: boolean

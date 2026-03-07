@@ -98,22 +98,25 @@ export default function CeremonyMode() {
     }
   };
 
-  const setWinner = async (categoryId: string, nomineeId: string) => {
+  const setWinner = async (categoryId: string, nomineeId: string, currentWinnerId: string | null) => {
     if (!academyId) return;
+    const clearing = nomineeId === currentWinnerId;
     setActionLoading(`winner-${categoryId}`);
     try {
       await api.post(
         `/academies/${academyId}/categories/${categoryId}/winner`,
-        { winnerId: nomineeId }
+        { winnerId: clearing ? null : nomineeId }
       );
       setCategories((prev) =>
         prev.map((c) =>
           c.categoryId === categoryId
-            ? { ...c, winnerId: nomineeId, resolvedAt: new Date().toISOString() }
+            ? clearing
+              ? { ...c, winnerId: null, resolvedAt: null, locked: true }
+              : { ...c, winnerId: nomineeId, resolvedAt: new Date().toISOString() }
             : c
         )
       );
-      setExpandedId(null);
+      if (!clearing) setExpandedId(null);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to set winner");
     } finally {
@@ -259,7 +262,7 @@ export default function CeremonyMode() {
                                 ...(isWinner ? styles.nomineeWinner : {}),
                               }}
                               onClick={() =>
-                                setWinner(cat.categoryId, nom.nomineeId)
+                                setWinner(cat.categoryId, nom.nomineeId, cat.winnerId)
                               }
                               disabled={
                                 actionLoading === `winner-${cat.categoryId}`

@@ -1,5 +1,5 @@
 import { Hono } from "hono";
-import { setWinner, setCategoryLocked } from "../db/categories.js";
+import { setWinner, clearWinner, setCategoryLocked } from "../db/categories.js";
 import { hostGuard } from "../middleware/academy-access.js";
 import { param } from "../middleware/params.js";
 
@@ -9,6 +9,11 @@ const app = new Hono();
 app.post("/:academyId/categories/:categoryId/winner", hostGuard, async (c) => {
   const categoryId = param(c, "categoryId");
   const { winnerId } = await c.req.json();
+
+  if (winnerId === null) {
+    await clearWinner(categoryId);
+    return c.json({ categoryId, winnerId: null });
+  }
 
   if (!winnerId) {
     return c.json({ error: "winnerId is required" }, 400);
