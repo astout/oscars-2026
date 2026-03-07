@@ -8,6 +8,7 @@ import {
   forgotPassword as cognitoForgotPassword,
   confirmForgotPassword as cognitoConfirmForgotPassword,
   resendConfirmationCode as cognitoResendCode,
+  changePassword as cognitoChangePassword,
   type AuthTokens,
   type SignUpParams,
 } from "../auth/cognito.js";
@@ -163,6 +164,19 @@ export function useAuth() {
     [clearError, setError]
   );
 
+  const changePassword = useCallback(
+    async (oldPassword: string, newPassword: string) => {
+      clearError();
+      try {
+        await cognitoChangePassword(oldPassword, newPassword);
+      } catch (err) {
+        setError(err);
+        throw err;
+      }
+    },
+    [clearError, setError]
+  );
+
   return {
     ...state,
     signUp,
@@ -172,6 +186,7 @@ export function useAuth() {
     forgotPassword,
     confirmForgotPassword,
     resendCode,
+    changePassword,
     clearError,
   };
 }

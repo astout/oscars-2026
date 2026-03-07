@@ -5,6 +5,7 @@ import {
   getAcademy,
   getAcademiesForUser,
   getMembers,
+  getMember,
   addMember,
   updateMemberStatus,
   removeMember,
@@ -81,6 +82,16 @@ app.get("/:academyId/join/:code", async (c) => {
     return c.json({ error: "Invalid invite link" }, 404);
   }
 
+  // Check if user was previously a member (e.g. left)
+  const existing = await getMember(academyId, userId);
+  if (existing) {
+    if (existing.status === "left") {
+      await updateMemberStatus(academyId, userId, "pending");
+      return c.json({ status: "pending", academyId });
+    }
+    return c.json({ error: "Already a member or pending" }, 409);
+  }
+
   try {
     await addMember(academyId, userId, email, "pending");
   } catch (e: any) {
@@ -91,6 +102,20 @@ app.get("/:academyId/join/:code", async (c) => {
   }
 
   return c.json({ status: "pending", academyId });
+});
+
+// Leave party (self)
+app.post("/:academyId/leave", memberGuard, async (c) => {
+  const { userId } = getUser(c);
+  const academyId = param(c, "academyId");
+
+  const academy = await getAcademy(academyId);
+  if (academy?.hostUserId === userId) {
+    return c.json({ error: "Host cannot leave the party" }, 400);
+  }
+
+  await updateMemberStatus(academyId, userId, "left");
+  return c.json({ status: "left" });
 });
 
 // Approve or remove member (host only)

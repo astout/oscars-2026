@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Users, Plus, UserPlus, Crown } from "@phosphor-icons/react";
+import { Users, Plus, UserPlus, Crown, UserCircle } from "@phosphor-icons/react";
 import { api } from "../api/client.js";
 import type { Academy } from "../types/academy.js";
 import OscarStatuette from "../components/OscarStatuette.js";
@@ -82,7 +82,17 @@ export default function WatchParties() {
 
   return (
     <div className="page animate-fade-in-up">
-      <div style={{ display: "flex", justifyContent: "center", paddingTop: "var(--space-4)" }}>
+      <div style={{ display: "flex", justifyContent: "flex-end", padding: "var(--space-2) var(--space-3) 0" }}>
+        <button
+          className="tap-target"
+          onClick={() => navigate("/profile")}
+          style={{ background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer", padding: "var(--space-1)" }}
+          aria-label="Profile"
+        >
+          <UserCircle size={24} weight="bold" />
+        </button>
+      </div>
+      <div style={{ display: "flex", justifyContent: "center" }}>
         <OscarStatuette size={80} />
       </div>
       <div className="page-header">

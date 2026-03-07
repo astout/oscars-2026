@@ -136,7 +136,7 @@ export async function addMember(
 export async function updateMemberStatus(
   academyId: string,
   userId: string,
-  status: "active" | "pending"
+  status: "active" | "pending" | "left"
 ): Promise<void> {
   await db.send(
     new UpdateCommand({

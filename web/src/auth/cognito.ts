@@ -123,6 +123,23 @@ export function confirmForgotPassword(
   });
 }
 
+export function changePassword(
+  oldPassword: string,
+  newPassword: string
+): Promise<void> {
+  return new Promise((resolve, reject) => {
+    const user = userPool.getCurrentUser();
+    if (!user) return reject(new Error("Not signed in"));
+    user.getSession((err: Error | null) => {
+      if (err) return reject(err);
+      user.changePassword(oldPassword, newPassword, (err2) => {
+        if (err2) return reject(err2);
+        resolve();
+      });
+    });
+  });
+}
+
 function extractTokens(session: CognitoUserSession): AuthTokens {
   const tokens: AuthTokens = {
     idToken: session.getIdToken().getJwtToken(),

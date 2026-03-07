@@ -9,6 +9,7 @@ import Categories from "./pages/Categories.js";
 import Leaderboard from "./pages/Leaderboard.js";
 import BonusEvents from "./pages/BonusEvents.js";
 import CeremonyMode from "./pages/CeremonyMode.js";
+import Profile from "./pages/Profile.js";
 import PartyLayout from "./components/PartyLayout.js";
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -27,6 +28,7 @@ export default function App() {
       <Route path="/" element={<ProtectedRoute><WatchParties /></ProtectedRoute>} />
       <Route path="/create" element={<ProtectedRoute><CreateWatchParty /></ProtectedRoute>} />
       <Route path="/join" element={<ProtectedRoute><JoinWatchParty /></ProtectedRoute>} />
+      <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
 
       {/* Party pages with bottom nav */}
       <Route path="/party/:academyId" element={<ProtectedRoute><PartyLayout /></ProtectedRoute>}>

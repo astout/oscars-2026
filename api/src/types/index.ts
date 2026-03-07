@@ -19,7 +19,7 @@ export interface AcademyMember {
   userId: string;
   displayName: string;
   role: "host" | "member";
-  status: "active" | "pending";
+  status: "active" | "pending" | "left";
   joinedAt: string;
 }
 

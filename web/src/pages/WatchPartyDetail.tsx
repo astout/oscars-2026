@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { Crown, Copy, Check, Users, Link, X, UserPlus, SignOut, Lock, LockOpen } from "@phosphor-icons/react";
+import { Crown, Copy, Check, Users, Link, X, UserPlus, Lock, LockOpen, DoorOpen } from "@phosphor-icons/react";
 import { api } from "../api/client.js";
 import { useAuthContext } from "../auth/AuthContext.js";
 import type { Academy, AcademyMember } from "../types/academy.js";
@@ -8,7 +8,8 @@ import type { Academy, AcademyMember } from "../types/academy.js";
 export default function WatchPartyDetail() {
   const { academyId } = useParams<{ academyId: string }>();
   const navigate = useNavigate();
-  const { userId, signOut } = useAuthContext();
+  const { userId } = useAuthContext();
+  const [confirmLeave, setConfirmLeave] = useState(false);
 
   const [party, setParty] = useState<Academy | null>(null);
   const [members, setMembers] = useState<AcademyMember[]>([]);
@@ -284,17 +285,55 @@ export default function WatchPartyDetail() {
           </div>
         </div>
 
-        {/* Sign Out */}
-        <div style={{ marginTop: "var(--space-8)", paddingTop: "var(--space-6)", borderTop: "0.5px solid var(--border-subtle)" }}>
-          <button
-            className="btn btn-ghost btn-full"
-            onClick={signOut}
-            style={{ color: "var(--status-wrong)", gap: "var(--space-2)" }}
-          >
-            <SignOut size={18} weight="bold" />
-            Sign Out
-          </button>
-        </div>
+        {/* Leave Party */}
+        {!isHost && (
+          <div style={{ marginTop: "var(--space-8)", paddingTop: "var(--space-6)", borderTop: "0.5px solid var(--border-subtle)" }}>
+            {!confirmLeave ? (
+              <button
+                className="btn btn-ghost btn-full"
+                onClick={() => setConfirmLeave(true)}
+                style={{ color: "var(--status-wrong)", gap: "var(--space-2)" }}
+              >
+                <DoorOpen size={18} weight="bold" />
+                Leave Party
+              </button>
+            ) : (
+              <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-3)", alignItems: "center" }}>
+                <p style={{ fontSize: "var(--text-sm)", color: "var(--text-muted)", textAlign: "center" }}>
+                  Your picks will be saved if you rejoin later.
+                </p>
+                <div className="confirm-actions" style={{ width: "100%" }}>
+                  <button
+                    className="btn btn-ghost"
+                    onClick={() => setConfirmLeave(false)}
+                    style={{ flex: 1 }}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    className="btn btn-danger"
+                    onClick={async () => {
+                      setActionLoading("leave");
+                      try {
+                        await api.post(`/academies/${academyId}/leave`);
+                        navigate("/");
+                      } catch (err) {
+                        setError(err instanceof Error ? err.message : "Failed to leave");
+                        setConfirmLeave(false);
+                      } finally {
+                        setActionLoading(null);
+                      }
+                    }}
+                    disabled={actionLoading === "leave"}
+                    style={{ flex: 1 }}
+                  >
+                    Leave
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

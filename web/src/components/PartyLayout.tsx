@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Outlet, useParams, useNavigate } from "react-router-dom";
-import { CaretLeft } from "@phosphor-icons/react";
+import { CaretLeft, UserCircle } from "@phosphor-icons/react";
 import { api } from "../api/client.js";
 import BottomNav from "./BottomNav.js";
 
@@ -35,6 +35,14 @@ export default function PartyLayout() {
             {party?.name || "Watch Party"}
           </span>
         </button>
+        <button
+          className="tap-target"
+          onClick={() => navigate("/profile")}
+          style={styles.profileButton}
+          aria-label="Profile"
+        >
+          <UserCircle size={24} weight="bold" />
+        </button>
       </div>
       <Outlet />
       <BottomNav academyId={academyId} />
@@ -46,6 +54,7 @@ const styles: Record<string, React.CSSProperties> = {
   topBar: {
     display: "flex",
     alignItems: "center",
+    justifyContent: "space-between",
     padding: "var(--space-2) var(--space-3)",
     borderBottom: "0.5px solid var(--border-subtle)",
     background: "var(--surface-base)",
@@ -66,6 +75,16 @@ const styles: Record<string, React.CSSProperties> = {
     cursor: "pointer",
     padding: "var(--space-1) var(--space-2)",
     borderRadius: "var(--radius-md)",
+  },
+  profileButton: {
+    background: "none",
+    border: "none",
+    color: "var(--text-muted)",
+    cursor: "pointer",
+    padding: "var(--space-1)",
+    borderRadius: "var(--radius-md)",
+    display: "flex",
+    alignItems: "center",
   },
   partyName: {
     overflow: "hidden",
