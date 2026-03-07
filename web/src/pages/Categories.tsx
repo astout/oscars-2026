@@ -1,0 +1,143 @@
+import { useState, useEffect, useCallback } from "react";
+import { useParams } from "react-router-dom";
+import { Trophy } from "@phosphor-icons/react";
+import { api } from "../api/client.js";
+import CategoryCard from "../components/CategoryCard.js";
+import PickModal from "../components/PickModal.js";
+
+interface Nominee {
+  nomineeId: string;
+  categoryId: string;
+  name: string;
+  subtitle?: string;
+  displayOrder: number;
+}
+
+interface Category {
+  categoryId: string;
+  name: string;
+  displayOrder: number;
+  winnerId: string | null;
+  locked: boolean;
+  resolvedAt: string | null;
+  nominees: Nominee[];
+}
+
+interface Pick {
+  userId: string;
+  categoryId: string;
+  pick1NomineeId: string;
+  pick2NomineeId: string;
+  updatedAt: string;
+}
+
+export default function Categories() {
+  const { academyId } = useParams<{ academyId: string }>();
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [picksMap, setPicksMap] = useState<Map<string, Pick>>(new Map());
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
+
+  const fetchData = useCallback(async () => {
+    if (!academyId) return;
+    setLoading(true);
+    setError("");
+    try {
+      const [cats, picks] = await Promise.all([
+        api.get<Category[]>("/categories"),
+        api.get<Pick[]>(`/academies/${academyId}/picks`),
+      ]);
+      setCategories(cats.sort((a, b) => a.displayOrder - b.displayOrder));
+      setPicksMap(new Map(picks.map((p) => [p.categoryId, p])));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to load categories");
+    } finally {
+      setLoading(false);
+    }
+  }, [academyId]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  const handlePickSaved = (pick: Pick) => {
+    setPicksMap((prev) => {
+      const next = new Map(prev);
+      next.set(pick.categoryId, pick);
+      return next;
+    });
+    setSelectedCategory(null);
+  };
+
+  const pickedCount = picksMap.size;
+  const totalCount = categories.length;
+
+  if (!academyId) return null;
+
+  return (
+    <div className="page">
+      <div className="page-content">
+        <div className="page-header animate-fade-in-up">
+          <h1 className="page-title" style={styles.title}>
+            <Trophy size={24} weight="fill" style={{ color: "var(--gold)" }} />
+            Categories
+          </h1>
+          {!loading && (
+            <p className="page-subtitle">
+              {pickedCount} of {totalCount} picked
+            </p>
+          )}
+        </div>
+
+        {error && <p style={styles.error}>{error}</p>}
+
+        {loading ? (
+          <div className="category-grid">
+            {Array.from({ length: 8 }).map((_, i) => (
+              <div key={i} className="card skeleton" style={styles.skeleton} />
+            ))}
+          </div>
+        ) : (
+          <div className="category-grid stagger-children">
+            {categories.map((cat) => (
+              <CategoryCard
+                key={cat.categoryId}
+                category={cat}
+                pick={picksMap.get(cat.categoryId)}
+                onSelect={setSelectedCategory}
+              />
+            ))}
+          </div>
+        )}
+      </div>
+
+      {selectedCategory && (
+        <PickModal
+          category={selectedCategory}
+          existingPick={picksMap.get(selectedCategory.categoryId)}
+          academyId={academyId}
+          onClose={() => setSelectedCategory(null)}
+          onSaved={handlePickSaved}
+        />
+      )}
+    </div>
+  );
+}
+
+const styles: Record<string, React.CSSProperties> = {
+  title: {
+    display: "flex",
+    alignItems: "center",
+    gap: "var(--space-2)",
+  },
+  error: {
+    color: "var(--status-wrong)",
+    fontSize: "var(--text-sm)",
+    textAlign: "center",
+    padding: "var(--space-4)",
+  },
+  skeleton: {
+    height: 120,
+  },
+};
