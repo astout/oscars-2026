@@ -1,5 +1,5 @@
 import { Hono } from "hono";
-import { ulid } from "ulid";
+import { randomUUID } from "node:crypto";
 import {
   createBonusEvent,
   getBonusEvents,
@@ -44,7 +44,7 @@ app.post("/:academyId/bonus", hostGuard, async (c) => {
   }
 
   const event: BonusEvent = {
-    eventId: ulid(),
+    eventId: randomUUID(),
     question: question.trim(),
     eventType: eventType || "yes-no",
     options: options || ["Yes", "No"],

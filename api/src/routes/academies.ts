@@ -1,5 +1,5 @@
 import { Hono } from "hono";
-import { ulid } from "ulid";
+import { randomUUID } from "node:crypto";
 import {
   createAcademy,
   getAcademy,
@@ -27,10 +27,10 @@ app.post("/", async (c) => {
   }
 
   const academy: Academy = {
-    academyId: ulid(),
+    academyId: randomUUID(),
     name: name.trim(),
     hostUserId: userId,
-    inviteCode: ulid().slice(-8).toLowerCase(),
+    inviteCode: randomUUID().slice(0, 8),
     allLocked: false,
     createdAt: new Date().toISOString(),
   };

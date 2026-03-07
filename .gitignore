@@ -4,7 +4,8 @@ build/
 .vite/
 cdk.out/
 *.js.map
-*.d.ts
 .env
 .env.local
 .DS_Store
+web/tsconfig.tsbuildinfo
+infra/cdk-outputs.json
