@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Users, Plus, UserPlus, Crown } from "@phosphor-icons/react";
 import { api } from "../api/client.js";
 import type { Academy } from "../types/academy.js";
+import OscarStatuette from "../components/OscarStatuette.js";
 
 export default function WatchParties() {
   const navigate = useNavigate();
@@ -81,6 +82,9 @@ export default function WatchParties() {
 
   return (
     <div className="page animate-fade-in-up">
+      <div style={{ display: "flex", justifyContent: "center", paddingTop: "var(--space-4)" }}>
+        <OscarStatuette size={80} />
+      </div>
       <div className="page-header">
         <h1 className="page-title">Watch Parties</h1>
         <p className="page-subtitle">{parties.length} {parties.length === 1 ? "party" : "parties"}</p>
