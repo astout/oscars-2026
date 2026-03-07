@@ -1,0 +1,300 @@
+{
+  "year": 2026,
+  "ceremony": "98th Academy Awards",
+  "date": "2026-03-15",
+  "categories": [
+    {
+      "categoryId": "best-picture",
+      "name": "Best Picture",
+      "displayOrder": 1,
+      "nominees": [
+        { "nomineeId": "bugonia", "name": "Bugonia" },
+        { "nomineeId": "f1", "name": "F1" },
+        { "nomineeId": "frankenstein", "name": "Frankenstein" },
+        { "nomineeId": "hamnet", "name": "Hamnet" },
+        { "nomineeId": "marty-supreme", "name": "Marty Supreme" },
+        { "nomineeId": "one-battle-after-another", "name": "One Battle After Another" },
+        { "nomineeId": "the-secret-agent", "name": "The Secret Agent" },
+        { "nomineeId": "sentimental-value", "name": "Sentimental Value" },
+        { "nomineeId": "sinners", "name": "Sinners" },
+        { "nomineeId": "train-dreams", "name": "Train Dreams" }
+      ]
+    },
+    {
+      "categoryId": "best-director",
+      "name": "Best Director",
+      "displayOrder": 2,
+      "nominees": [
+        { "nomineeId": "chloe-zhao", "name": "Chloé Zhao", "subtitle": "Hamnet" },
+        { "nomineeId": "josh-safdie", "name": "Josh Safdie", "subtitle": "Marty Supreme" },
+        { "nomineeId": "paul-thomas-anderson", "name": "Paul Thomas Anderson", "subtitle": "One Battle After Another" },
+        { "nomineeId": "joachim-trier", "name": "Joachim Trier", "subtitle": "Sentimental Value" },
+        { "nomineeId": "ryan-coogler", "name": "Ryan Coogler", "subtitle": "Sinners" }
+      ]
+    },
+    {
+      "categoryId": "best-actor",
+      "name": "Best Actor",
+      "displayOrder": 3,
+      "nominees": [
+        { "nomineeId": "timothee-chalamet", "name": "Timothée Chalamet", "subtitle": "Marty Supreme" },
+        { "nomineeId": "leonardo-dicaprio", "name": "Leonardo DiCaprio", "subtitle": "One Battle After Another" },
+        { "nomineeId": "ethan-hawke", "name": "Ethan Hawke", "subtitle": "Blue Moon" },
+        { "nomineeId": "michael-b-jordan", "name": "Michael B. Jordan", "subtitle": "Sinners" },
+        { "nomineeId": "wagner-moura", "name": "Wagner Moura", "subtitle": "The Secret Agent" }
+      ]
+    },
+    {
+      "categoryId": "best-actress",
+      "name": "Best Actress",
+      "displayOrder": 4,
+      "nominees": [
+        { "nomineeId": "jessie-buckley", "name": "Jessie Buckley", "subtitle": "Hamnet" },
+        { "nomineeId": "rose-byrne", "name": "Rose Byrne", "subtitle": "If I Had Legs I'd Kick You" },
+        { "nomineeId": "kate-hudson", "name": "Kate Hudson", "subtitle": "Song Sung Blue" },
+        { "nomineeId": "renate-reinsve", "name": "Renate Reinsve", "subtitle": "Sentimental Value" },
+        { "nomineeId": "emma-stone", "name": "Emma Stone", "subtitle": "Bugonia" }
+      ]
+    },
+    {
+      "categoryId": "best-supporting-actor",
+      "name": "Best Supporting Actor",
+      "displayOrder": 5,
+      "nominees": [
+        { "nomineeId": "benicio-del-toro", "name": "Benicio del Toro", "subtitle": "One Battle After Another" },
+        { "nomineeId": "jacob-elordi", "name": "Jacob Elordi", "subtitle": "Frankenstein" },
+        { "nomineeId": "delroy-lindo", "name": "Delroy Lindo", "subtitle": "Sinners" },
+        { "nomineeId": "sean-penn", "name": "Sean Penn", "subtitle": "One Battle After Another" },
+        { "nomineeId": "stellan-skarsgard", "name": "Stellan Skarsgård", "subtitle": "Sentimental Value" }
+      ]
+    },
+    {
+      "categoryId": "best-supporting-actress",
+      "name": "Best Supporting Actress",
+      "displayOrder": 6,
+      "nominees": [
+        { "nomineeId": "elle-fanning", "name": "Elle Fanning", "subtitle": "Sentimental Value" },
+        { "nomineeId": "inga-ibsdotter-lilleaas", "name": "Inga Ibsdotter Lilleaas", "subtitle": "Sentimental Value" },
+        { "nomineeId": "amy-madigan", "name": "Amy Madigan", "subtitle": "Weapons" },
+        { "nomineeId": "wunmi-mosaku", "name": "Wunmi Mosaku", "subtitle": "Sinners" },
+        { "nomineeId": "teyana-taylor", "name": "Teyana Taylor", "subtitle": "One Battle After Another" }
+      ]
+    },
+    {
+      "categoryId": "best-original-screenplay",
+      "name": "Best Original Screenplay",
+      "displayOrder": 7,
+      "nominees": [
+        { "nomineeId": "blue-moon-screenplay", "name": "Blue Moon", "subtitle": "Robert Kaplow" },
+        { "nomineeId": "it-was-just-an-accident-screenplay", "name": "It Was Just an Accident", "subtitle": "Jafar Panahi" },
+        { "nomineeId": "marty-supreme-screenplay", "name": "Marty Supreme", "subtitle": "Ronald Bronstein & Josh Safdie" },
+        { "nomineeId": "sentimental-value-screenplay", "name": "Sentimental Value", "subtitle": "Eskil Vogt & Joachim Trier" },
+        { "nomineeId": "sinners-screenplay", "name": "Sinners", "subtitle": "Ryan Coogler" }
+      ]
+    },
+    {
+      "categoryId": "best-adapted-screenplay",
+      "name": "Best Adapted Screenplay",
+      "displayOrder": 8,
+      "nominees": [
+        { "nomineeId": "bugonia-screenplay", "name": "Bugonia", "subtitle": "Will Tracy" },
+        { "nomineeId": "frankenstein-screenplay", "name": "Frankenstein", "subtitle": "Guillermo del Toro" },
+        { "nomineeId": "hamnet-screenplay", "name": "Hamnet", "subtitle": "Chloé Zhao & Maggie O'Farrell" },
+        { "nomineeId": "one-battle-screenplay", "name": "One Battle After Another", "subtitle": "Paul Thomas Anderson" },
+        { "nomineeId": "train-dreams-screenplay", "name": "Train Dreams", "subtitle": "Clint Bentley & Greg Kwedar" }
+      ]
+    },
+    {
+      "categoryId": "best-animated-feature",
+      "name": "Best Animated Feature",
+      "displayOrder": 9,
+      "nominees": [
+        { "nomineeId": "arco", "name": "Arco" },
+        { "nomineeId": "elio", "name": "Elio" },
+        { "nomineeId": "kpop-demon-hunters", "name": "KPop Demon Hunters" },
+        { "nomineeId": "little-amelie", "name": "Little Amélie or the Character of Rain" },
+        { "nomineeId": "zootopia-2", "name": "Zootopia 2" }
+      ]
+    },
+    {
+      "categoryId": "best-international-feature",
+      "name": "Best International Feature Film",
+      "displayOrder": 10,
+      "nominees": [
+        { "nomineeId": "it-was-just-an-accident", "name": "It Was Just an Accident", "subtitle": "France" },
+        { "nomineeId": "the-secret-agent-intl", "name": "The Secret Agent", "subtitle": "Brazil" },
+        { "nomineeId": "sentimental-value-intl", "name": "Sentimental Value", "subtitle": "Norway" },
+        { "nomineeId": "sirat", "name": "Sirāt", "subtitle": "Spain" },
+        { "nomineeId": "voice-of-hind-rajab", "name": "The Voice of Hind Rajab", "subtitle": "Tunisia" }
+      ]
+    },
+    {
+      "categoryId": "best-documentary-feature",
+      "name": "Best Documentary Feature",
+      "displayOrder": 11,
+      "nominees": [
+        { "nomineeId": "alabama-solution", "name": "The Alabama Solution" },
+        { "nomineeId": "come-see-me", "name": "Come See Me in the Good Light" },
+        { "nomineeId": "cutting-through-rocks", "name": "Cutting Through Rocks" },
+        { "nomineeId": "mr-nobody-against-putin", "name": "Mr Nobody Against Putin" },
+        { "nomineeId": "perfect-neighbor", "name": "The Perfect Neighbor" }
+      ]
+    },
+    {
+      "categoryId": "best-documentary-short",
+      "name": "Best Documentary Short Film",
+      "displayOrder": 12,
+      "nominees": [
+        { "nomineeId": "all-empty-rooms", "name": "All the Empty Rooms" },
+        { "nomineeId": "armed-only-camera", "name": "Armed Only with a Camera" },
+        { "nomineeId": "children-no-more", "name": "Children No More" },
+        { "nomineeId": "devil-is-busy", "name": "The Devil Is Busy" },
+        { "nomineeId": "perfectly-strangeness", "name": "Perfectly a Strangeness" }
+      ]
+    },
+    {
+      "categoryId": "best-live-action-short",
+      "name": "Best Live Action Short Film",
+      "displayOrder": 13,
+      "nominees": [
+        { "nomineeId": "butchers-stain", "name": "Butcher's Stain" },
+        { "nomineeId": "friend-of-dorothy", "name": "A Friend of Dorothy" },
+        { "nomineeId": "jane-austen-period-drama", "name": "Jane Austen's Period Drama" },
+        { "nomineeId": "the-singers", "name": "The Singers" },
+        { "nomineeId": "two-people-exchanging-saliva", "name": "Two People Exchanging Saliva" }
+      ]
+    },
+    {
+      "categoryId": "best-animated-short",
+      "name": "Best Animated Short Film",
+      "displayOrder": 14,
+      "nominees": [
+        { "nomineeId": "butterfly", "name": "Butterfly" },
+        { "nomineeId": "forevergreen", "name": "Forevergreen" },
+        { "nomineeId": "girl-who-cried-pearls", "name": "The Girl Who Cried Pearls" },
+        { "nomineeId": "retirement-plan", "name": "Retirement Plan" },
+        { "nomineeId": "three-sisters", "name": "The Three Sisters" }
+      ]
+    },
+    {
+      "categoryId": "best-original-score",
+      "name": "Best Original Score",
+      "displayOrder": 15,
+      "nominees": [
+        { "nomineeId": "bugonia-score", "name": "Bugonia", "subtitle": "Jerskin Fendrix" },
+        { "nomineeId": "frankenstein-score", "name": "Frankenstein", "subtitle": "Alexandre Desplat" },
+        { "nomineeId": "hamnet-score", "name": "Hamnet", "subtitle": "Max Richter" },
+        { "nomineeId": "one-battle-score", "name": "One Battle After Another", "subtitle": "Jonny Greenwood" },
+        { "nomineeId": "sinners-score", "name": "Sinners", "subtitle": "Ludwig Göransson" }
+      ]
+    },
+    {
+      "categoryId": "best-original-song",
+      "name": "Best Original Song",
+      "displayOrder": 16,
+      "nominees": [
+        { "nomineeId": "dear-me", "name": "\"Dear Me\"", "subtitle": "Diane Warren: Relentless" },
+        { "nomineeId": "golden", "name": "\"Golden\"", "subtitle": "KPop Demon Hunters" },
+        { "nomineeId": "i-lied-to-you", "name": "\"I Lied to You\"", "subtitle": "Sinners" },
+        { "nomineeId": "sweet-dreams-of-joy", "name": "\"Sweet Dreams of Joy\"", "subtitle": "Viva Verdi!" },
+        { "nomineeId": "train-dreams-song", "name": "\"Train Dreams\"", "subtitle": "Train Dreams" }
+      ]
+    },
+    {
+      "categoryId": "best-casting",
+      "name": "Best Casting",
+      "displayOrder": 17,
+      "nominees": [
+        { "nomineeId": "hamnet-casting", "name": "Hamnet", "subtitle": "Nina Gold" },
+        { "nomineeId": "marty-supreme-casting", "name": "Marty Supreme", "subtitle": "Jennifer Venditti" },
+        { "nomineeId": "one-battle-casting", "name": "One Battle After Another", "subtitle": "Cassandra Kulukundis" },
+        { "nomineeId": "secret-agent-casting", "name": "The Secret Agent", "subtitle": "Gabriel Domingues" },
+        { "nomineeId": "sinners-casting", "name": "Sinners", "subtitle": "Francine Maisler" }
+      ]
+    },
+    {
+      "categoryId": "best-sound",
+      "name": "Best Sound",
+      "displayOrder": 18,
+      "nominees": [
+        { "nomineeId": "f1-sound", "name": "F1" },
+        { "nomineeId": "frankenstein-sound", "name": "Frankenstein" },
+        { "nomineeId": "one-battle-sound", "name": "One Battle After Another" },
+        { "nomineeId": "sinners-sound", "name": "Sinners" },
+        { "nomineeId": "sirat-sound", "name": "Sirāt" }
+      ]
+    },
+    {
+      "categoryId": "best-production-design",
+      "name": "Best Production Design",
+      "displayOrder": 19,
+      "nominees": [
+        { "nomineeId": "frankenstein-prod", "name": "Frankenstein", "subtitle": "Tamara Deverell / Shane Vieau" },
+        { "nomineeId": "hamnet-prod", "name": "Hamnet", "subtitle": "Fiona Crombie / Alice Felton" },
+        { "nomineeId": "marty-supreme-prod", "name": "Marty Supreme", "subtitle": "Jack Fisk / Adam Willis" },
+        { "nomineeId": "one-battle-prod", "name": "One Battle After Another", "subtitle": "Florencia Martin / Anthony Carlino" },
+        { "nomineeId": "sinners-prod", "name": "Sinners", "subtitle": "Hannah Beachler / Monique Champagne" }
+      ]
+    },
+    {
+      "categoryId": "best-cinematography",
+      "name": "Best Cinematography",
+      "displayOrder": 20,
+      "nominees": [
+        { "nomineeId": "frankenstein-cin", "name": "Frankenstein", "subtitle": "Dan Laustsen" },
+        { "nomineeId": "marty-supreme-cin", "name": "Marty Supreme", "subtitle": "Darius Khondji" },
+        { "nomineeId": "one-battle-cin", "name": "One Battle After Another", "subtitle": "Michael Bauman" },
+        { "nomineeId": "sinners-cin", "name": "Sinners", "subtitle": "Autumn Durald Arkapaw" },
+        { "nomineeId": "train-dreams-cin", "name": "Train Dreams", "subtitle": "Adolpho Veloso" }
+      ]
+    },
+    {
+      "categoryId": "best-makeup-hairstyling",
+      "name": "Best Makeup and Hairstyling",
+      "displayOrder": 21,
+      "nominees": [
+        { "nomineeId": "frankenstein-makeup", "name": "Frankenstein" },
+        { "nomineeId": "kokuho-makeup", "name": "Kokuho" },
+        { "nomineeId": "sinners-makeup", "name": "Sinners" },
+        { "nomineeId": "smashing-machine-makeup", "name": "The Smashing Machine" },
+        { "nomineeId": "ugly-stepsister-makeup", "name": "The Ugly Stepsister" }
+      ]
+    },
+    {
+      "categoryId": "best-costume-design",
+      "name": "Best Costume Design",
+      "displayOrder": 22,
+      "nominees": [
+        { "nomineeId": "avatar-costume", "name": "Avatar: Fire and Ash", "subtitle": "Deborah L. Scott" },
+        { "nomineeId": "frankenstein-costume", "name": "Frankenstein", "subtitle": "Kate Hawley" },
+        { "nomineeId": "hamnet-costume", "name": "Hamnet", "subtitle": "Malgosia Turzanska" },
+        { "nomineeId": "marty-supreme-costume", "name": "Marty Supreme", "subtitle": "Miyako Bellizzi" },
+        { "nomineeId": "sinners-costume", "name": "Sinners", "subtitle": "Ruth E. Carter" }
+      ]
+    },
+    {
+      "categoryId": "best-film-editing",
+      "name": "Best Film Editing",
+      "displayOrder": 23,
+      "nominees": [
+        { "nomineeId": "f1-editing", "name": "F1", "subtitle": "Stephen Mirrione" },
+        { "nomineeId": "marty-supreme-editing", "name": "Marty Supreme", "subtitle": "Ronald Bronstein & Josh Safdie" },
+        { "nomineeId": "one-battle-editing", "name": "One Battle After Another", "subtitle": "Andy Jurgensen" },
+        { "nomineeId": "sentimental-value-editing", "name": "Sentimental Value", "subtitle": "Olivier Bugge Coutté" },
+        { "nomineeId": "sinners-editing", "name": "Sinners", "subtitle": "Michael P. Shawver" }
+      ]
+    },
+    {
+      "categoryId": "best-visual-effects",
+      "name": "Best Visual Effects",
+      "displayOrder": 24,
+      "nominees": [
+        { "nomineeId": "avatar-vfx", "name": "Avatar: Fire and Ash" },
+        { "nomineeId": "f1-vfx", "name": "F1" },
+        { "nomineeId": "jurassic-world-vfx", "name": "Jurassic World Rebirth" },
+        { "nomineeId": "lost-bus-vfx", "name": "The Lost Bus" },
+        { "nomineeId": "sinners-vfx", "name": "Sinners" }
+      ]
+    }
+  ]
+}

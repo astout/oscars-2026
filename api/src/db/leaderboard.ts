@@ -1,0 +1,104 @@
+import type {
+  Category,
+  Pick,
+  BonusEvent,
+  Wager,
+  AcademyMember,
+  LeaderboardEntry,
+} from "../types/index.js";
+import { getMembers } from "./academies.js";
+import { getCategories } from "./categories.js";
+import { getAllPicks } from "./picks.js";
+import { getBonusEvents, getWagers } from "./bonus.js";
+
+export async function computeLeaderboard(
+  academyId: string
+): Promise<LeaderboardEntry[]> {
+  const [members, categories, picks, bonusEvents, wagers] = await Promise.all([
+    getMembers(academyId),
+    getCategories(),
+    getAllPicks(academyId),
+    getBonusEvents(academyId),
+    getWagers(academyId),
+  ]);
+
+  const activeMembers = members.filter((m) => m.status === "active");
+  const resolvedCategories = categories.filter((c) => c.winnerId);
+  const resolvedEvents = bonusEvents.filter((e) => e.status === "resolved");
+
+  // Index picks by `userId:categoryId`
+  const pickMap = new Map<string, Pick>();
+  for (const p of picks) {
+    pickMap.set(`${p.userId}:${p.categoryId}`, p);
+  }
+
+  // Index wagers by `userId:eventId`
+  const wagerMap = new Map<string, Wager>();
+  for (const w of wagers) {
+    wagerMap.set(`${w.userId}:${w.eventId}`, w);
+  }
+
+  const entries: LeaderboardEntry[] = activeMembers.map((member) => {
+    let categoryPoints = 0;
+    let correctFirst = 0;
+    let correctSecond = 0;
+
+    for (const cat of resolvedCategories) {
+      const pick = pickMap.get(`${member.userId}:${cat.categoryId}`);
+      if (!pick) continue;
+      if (pick.pick1NomineeId === cat.winnerId) {
+        categoryPoints += 5;
+        correctFirst++;
+      } else if (pick.pick2NomineeId === cat.winnerId) {
+        categoryPoints += 3;
+        correctSecond++;
+      }
+    }
+
+    let bonusPoints = 0;
+    for (const event of resolvedEvents) {
+      const wager = wagerMap.get(`${member.userId}:${event.eventId}`);
+      if (!wager) continue;
+      if (wager.prediction === event.correctAnswer) {
+        bonusPoints += event.basePoints;
+        bonusPoints += wager.wagerAmount; // net gain from wager
+      } else {
+        bonusPoints -= wager.wagerAmount;
+      }
+    }
+
+    const totalPoints = Math.max(0, categoryPoints + bonusPoints);
+
+    return {
+      userId: member.userId,
+      displayName: member.displayName,
+      categoryPoints,
+      bonusPoints,
+      totalPoints,
+      correctFirst,
+      correctSecond,
+      rank: 0,
+    };
+  });
+
+  // Sort: total desc, then correctFirst desc as tiebreaker
+  entries.sort(
+    (a, b) =>
+      b.totalPoints - a.totalPoints || b.correctFirst - a.correctFirst
+  );
+
+  // Assign ranks (handle ties)
+  for (let i = 0; i < entries.length; i++) {
+    if (
+      i > 0 &&
+      entries[i].totalPoints === entries[i - 1].totalPoints &&
+      entries[i].correctFirst === entries[i - 1].correctFirst
+    ) {
+      entries[i].rank = entries[i - 1].rank;
+    } else {
+      entries[i].rank = i + 1;
+    }
+  }
+
+  return entries;
+}

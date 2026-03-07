@@ -1,0 +1,119 @@
+:root {
+  /* Surface System */
+  --surface-base: #0d0d0d;
+  --surface-raised: #161616;
+  --surface-overlay: #1c1c1c;
+  --surface-sunken: #080808;
+  --surface-interactive: #1f1f1f;
+
+  /* Gold System */
+  --gold-muted: #8b7430;
+  --gold: #c29f3f;
+  --gold-bright: #dab94e;
+  --gold-vivid: #f7cb50;
+  --gold-flash: #ffdb53;
+  --gold-glow: rgba(199, 163, 65, 0.15);
+
+  /* Text System */
+  --text-primary: #f0ece4;
+  --text-secondary: #a8a29e;
+  --text-muted: #6b6560;
+  --text-faint: #3d3a37;
+  --text-on-gold: #1a1400;
+
+  /* Picks */
+  --pick-1: #23cf30;
+  --pick-1-glow: rgba(35, 207, 48, 0.25);
+  --pick-2: #1f7cc2;
+  --pick-2-glow: rgba(31, 124, 194, 0.25);
+
+  /* Status */
+  --status-correct: #23cf30;
+  --status-wrong: #e54c35;
+  --status-pending: #a8a29e;
+  --status-locked: #e54c35;
+  --status-open: #23cf30;
+
+  /* Wagers */
+  --wager-safe: #1f7cc2;
+  --wager-risky: #e5a435;
+  --wager-yolo: #e54c35;
+
+  /* Borders */
+  --border: rgba(255, 255, 255, 0.08);
+  --border-subtle: rgba(255, 255, 255, 0.04);
+  --border-gold: rgba(194, 159, 63, 0.3);
+  --border-strong: rgba(255, 255, 255, 0.15);
+
+  /* Typography */
+  --font-display: "Inter", -apple-system, sans-serif;
+  --font-body: "Inter", -apple-system, sans-serif;
+  --font-mono: "JetBrains Mono", monospace;
+
+  --text-xs: 0.6875rem;
+  --text-sm: 0.75rem;
+  --text-base: 0.875rem;
+  --text-md: 1rem;
+  --text-lg: 1.125rem;
+  --text-xl: 1.5rem;
+  --text-2xl: 2rem;
+  --text-3xl: 3rem;
+
+  --weight-light: 300;
+  --weight-normal: 400;
+  --weight-medium: 500;
+  --weight-semibold: 600;
+
+  --tracking-tight: -0.02em;
+  --tracking-normal: 0;
+  --tracking-wide: 0.04em;
+
+  /* Spacing */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-pill: 9999px;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  font-family: var(--font-body);
+  font-weight: var(--weight-normal);
+  color: var(--text-primary);
+  background: var(--surface-base);
+  line-height: 1.5;
+  min-height: 100dvh;
+}
+
+a {
+  color: var(--gold);
+  text-decoration: none;
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+}

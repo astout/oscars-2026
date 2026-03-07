@@ -1,0 +1,10 @@
+node_modules/
+dist/
+build/
+.vite/
+cdk.out/
+*.js.map
+*.d.ts
+.env
+.env.local
+.DS_Store

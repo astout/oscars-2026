@@ -1,0 +1,9 @@
+{
+  "name": "oscars-2026",
+  "private": true,
+  "workspaces": [
+    "api",
+    "web",
+    "infra"
+  ]
+}
