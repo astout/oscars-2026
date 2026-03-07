@@ -257,8 +257,8 @@ Mobile Card (Picks made):
 +------------------------------------------+
 | BEST PICTURE                        OPEN |
 |                                          |
-| 1ST  Anora                         +5    |
-| 2ND  The Brutalist                 +3    |
+| 1ST  Sinners                       +5    |
+| 2ND  Hamnet                        +3    |
 |                                          |
 +------------------------------------------+
 
@@ -267,10 +267,10 @@ Mobile Card (Resolved — got 1st right):
 | BEST PICTURE                     +5 pts  |
 |                                          |
 | [winner glow]                            |
-| * Anora *                                |
+| * Sinners *                              |
 |                                          |
-| 1ST  Anora              CORRECT    +5    |
-| 2ND  The Brutalist       wrong     +0    |
+| 1ST  Sinners            CORRECT    +5    |
+| 2ND  Hamnet              wrong     +0    |
 +------------------------------------------+
 ```
 
@@ -295,11 +295,11 @@ Pick Selection (full screen mobile):
 |  Tap to select your 1st pick (5 pts)     |
 |                                          |
 |  +--------------------------------------+|
-|  | Anora                                ||
+|  | Sinners                              ||
 |  +--------------------------------------+|
-|  | The Brutalist                        ||
+|  | Hamnet                               ||
 |  +--------------------------------------+|
-|  | Conclave                             ||
+|  | Marty Supreme                        ||
 |  +--------------------------------------+|
 |  | ...                                  ||
 |  +--------------------------------------+|
@@ -312,14 +312,14 @@ After 1st pick selected:
 +------------------------------------------+
 |                                          |
 |  1ST PICK (5 pts):                       |
-|  [green] Anora                    [x]    |
+|  [green] Sinners                  [x]    |
 |                                          |
 |  Now select your 2nd pick (3 pts)        |
 |                                          |
 |  +--------------------------------------+|
-|  | The Brutalist                        ||
+|  | Hamnet                               ||
 |  +--------------------------------------+|
-|  | Conclave                             ||
+|  | Marty Supreme                        ||
 |  +--------------------------------------+|
 |  | ...                                  ||
 |  +--------------------------------------+|
@@ -407,7 +407,7 @@ Admin — Ceremony Mode:
 | [ Set Winner v ]  [ Lock ] [ Unlock ]   |
 |                                          |
 | BEST ACTRESS                  RESOLVED  |
-| Winner: Mikey Madison           [Edit]  |
+| Winner: Jessie Buckley          [Edit]  |
 |                                          |
 | ─────────────────────────────────────    |
 | BONUS EVENTS                             |

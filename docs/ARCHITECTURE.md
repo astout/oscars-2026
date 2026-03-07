@@ -67,90 +67,68 @@ If CloudFront path-based routing adds complexity, use `api.oscars2026.alexhacks.
 
 ```
 oscars-2026/
-├── docs/                        # Documentation
+├── docs/
 │   ├── ARCHITECTURE.md          # This file
 │   ├── DATA-MODEL.md            # DynamoDB schema & access patterns
 │   └── DESIGN.md                # UI/UX design system
-├── infra/                       # CDK stacks
+├── infra/                       # CDK stacks (CommonJS for ts-node compat)
 │   ├── bin/
-│   │   └── app.ts               # CDK app entry
+│   │   └── app.ts               # CDK app entry — wires all stacks
 │   ├── lib/
-│   │   ├── api-stack.ts         # Lambda + API Gateway
-│   │   ├── auth-stack.ts        # Cognito user pool + clients
-│   │   ├── data-stack.ts        # DynamoDB tables
-│   │   ├── dns-stack.ts         # Route53 + ACM certificates
-│   │   └── frontend-stack.ts    # S3 + CloudFront
+│   │   ├── api-stack.ts         # Lambda (NodejsFunction) + HTTP API Gateway + JWT authorizer
+│   │   ├── auth-stack.ts        # Cognito user pool + web client
+│   │   ├── data-stack.ts        # DynamoDB table + GSI1
+│   │   └── frontend-stack.ts    # S3 + CloudFront + BucketDeployment
 │   ├── cdk.json
 │   ├── package.json
 │   └── tsconfig.json
-├── api/                         # Hono Lambda backend
+├── api/                         # Hono Lambda backend (ESM)
 │   ├── src/
-│   │   ├── index.ts             # Hono app + Lambda handler
+│   │   ├── index.ts             # Hono app + Lambda handler export
+│   │   ├── local.ts             # Local dev server (@hono/node-server)
+│   │   ├── seed.ts              # Seed 2026 nominees into DynamoDB
 │   │   ├── routes/
-│   │   │   ├── academies.ts     # CRUD academies, members, invites
-│   │   │   ├── picks.ts         # Make/update/view picks
-│   │   │   ├── categories.ts    # List categories + nominees
+│   │   │   ├── academies.ts     # CRUD academies, members, invites, lock/unlock
+│   │   │   ├── picks.ts         # Make/update/view picks per academy
+│   │   │   ├── categories.ts    # List categories + nominees (global)
 │   │   │   ├── bonus.ts         # Bonus events + wagers
-│   │   │   ├── leaderboard.ts   # Scores + rankings
-│   │   │   └── admin.ts         # Host controls (lock, set winner, etc.)
+│   │   │   ├── leaderboard.ts   # Computed scores + rankings
+│   │   │   └── admin.ts         # Host: set winner, lock/unlock categories
 │   │   ├── middleware/
-│   │   │   ├── auth.ts          # Cognito JWT validation
-│   │   │   └── academy-access.ts # Academy membership checks
+│   │   │   ├── auth.ts          # Cognito JWT extraction from API Gateway context
+│   │   │   ├── academy-access.ts # memberGuard + hostGuard
+│   │   │   └── params.ts        # param() helper — safe route param extraction
 │   │   ├── db/
-│   │   │   ├── client.ts        # DynamoDB DocumentClient
-│   │   │   ├── academies.ts     # Academy data access
-│   │   │   ├── picks.ts         # Pick data access
-│   │   │   ├── categories.ts    # Category/nominee data access
-│   │   │   ├── bonus.ts         # Bonus event data access
-│   │   │   └── leaderboard.ts   # Score computation
+│   │   │   ├── client.ts        # DynamoDB DocumentClient + TABLE_NAME
+│   │   │   ├── academies.ts     # Academy + member CRUD
+│   │   │   ├── picks.ts         # Pick read/write
+│   │   │   ├── categories.ts    # Category + nominee read/write
+│   │   │   ├── bonus.ts         # BonusEvent + wager CRUD
+│   │   │   └── leaderboard.ts   # Score computation (read-time aggregation)
 │   │   └── types/
-│   │       └── index.ts         # Shared types
+│   │       └── index.ts         # All shared interfaces
 │   ├── package.json
 │   └── tsconfig.json
-├── web/                         # React + Vite frontend
+├── web/                         # React 19 + Vite frontend (ESM)
 │   ├── src/
-│   │   ├── main.tsx             # App entry
-│   │   ├── App.tsx              # Router + layout
+│   │   ├── main.tsx             # App entry + BrowserRouter
+│   │   ├── App.tsx              # Route definitions
 │   │   ├── pages/
-│   │   │   ├── Home.tsx         # Landing / academy list
-│   │   │   ├── Academy.tsx      # Academy dashboard (categories)
-│   │   │   ├── Picks.tsx        # Pick selection flow
-│   │   │   ├── Leaderboard.tsx  # Rankings
-│   │   │   ├── Bonus.tsx        # Bonus events + wagers
-│   │   │   ├── Admin.tsx        # Host dashboard + ceremony mode
-│   │   │   ├── Settings.tsx     # Academy settings, members
-│   │   │   ├── Join.tsx         # Join via invite link
-│   │   │   └── Auth.tsx         # Sign in / sign up
-│   │   ├── components/
-│   │   │   ├── CategoryCard.tsx
-│   │   │   ├── PickSelector.tsx
-│   │   │   ├── LeaderboardRow.tsx
-│   │   │   ├── BonusEventCard.tsx
-│   │   │   ├── WagerSelector.tsx
-│   │   │   ├── NavBar.tsx       # Bottom tabs (mobile) / sidebar (desktop)
-│   │   │   └── ...
-│   │   ├── hooks/
-│   │   │   ├── useAuth.ts       # Cognito auth state
-│   │   │   ├── useAcademy.ts    # Current academy context
-│   │   │   ├── usePicks.ts      # Pick state + optimistic updates
-│   │   │   └── usePolling.ts    # Periodic data refresh
+│   │   │   └── Home.tsx         # Landing page (placeholder)
 │   │   ├── api/
-│   │   │   └── client.ts        # API client with auth headers
-│   │   ├── auth/
-│   │   │   └── cognito.ts       # Cognito config + helpers
+│   │   │   └── client.ts        # Fetch wrapper with Bearer token
 │   │   └── styles/
 │   │       └── tokens.css       # Design system CSS variables
-│   ├── public/
-│   │   ├── manifest.json        # PWA manifest
-│   │   └── icons/               # App icons
 │   ├── index.html
-│   ├── vite.config.ts
+│   ├── vite.config.ts           # Dev proxy /api -> localhost:3001
 │   ├── package.json
 │   └── tsconfig.json
-├── data/                        # Seed data
-│   └── 2026-nominees.json       # Official nominee list
-├── package.json                 # Monorepo root (workspaces)
-└── tsconfig.base.json           # Shared TS config
+├── data/
+│   └── 2026-nominees.json       # 24 categories, 130 nominees (98th Academy Awards)
+├── CLAUDE.md                    # Project instructions for Claude
+├── README.md
+├── package.json                 # Monorepo root (npm workspaces)
+└── tsconfig.base.json           # Shared TS config (ESM, strict)
 ```
 
 ---
@@ -161,20 +139,21 @@ oscars-2026/
 
 | Stack | Resources | Dependencies |
 |-------|-----------|--------------|
-| `DataStack` | DynamoDB tables | None |
-| `AuthStack` | Cognito user pool, identity pool, app clients | None |
-| `ApiStack` | Lambda function, API Gateway HTTP API | DataStack, AuthStack |
-| `DnsStack` | Route53 hosted zone, ACM certificate | None |
-| `FrontendStack` | S3 bucket, CloudFront distribution, OAC | DnsStack |
+| `DataStack` | DynamoDB table (`oscars-2026`) + GSI1 | None |
+| `AuthStack` | Cognito user pool + web app client | None |
+| `ApiStack` | Lambda (NodejsFunction), HTTP API Gateway, JWT authorizer | DataStack, AuthStack |
+| `FrontendStack` | S3 bucket, CloudFront distribution, BucketDeployment | None (uses `web/dist/`) |
+
+DNS (Route53 + ACM) will be added when domain is configured.
 
 ### Deployment Order
 
 ```
-DataStack + AuthStack + DnsStack  (parallel, no deps)
+DataStack + AuthStack  (parallel, no deps)
          |
-      ApiStack  (needs table names + user pool ID)
+      ApiStack  (needs table ARN + user pool ID)
          |
-    FrontendStack  (needs API URL for config, certificate ARN)
+    FrontendStack  (needs web/dist/ built first)
 ```
 
 ---

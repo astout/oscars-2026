@@ -83,9 +83,9 @@ Global categories (not per-academy). Shared across all academies.
 | categoryId | | `best-picture` |
 | name | | `Best Picture` |
 | displayOrder | | `1` |
-| winnerId | | `nominee-anora` or `null` |
+| winnerId | | `sinners` or `null` |
 | locked | | `false` |
-| resolvedAt | | `null` or `2026-03-02T23:15:00Z` |
+| resolvedAt | | `null` or `2026-03-15T23:15:00Z` |
 
 **Access patterns:**
 - List all categories: `PK = YEAR#2026`, `SK begins_with CATEGORY#`
@@ -98,9 +98,9 @@ Global categories (not per-academy). Shared across all academies.
 | Attribute | Key | Example |
 |-----------|-----|---------|
 | PK | `CATEGORY#<categoryId>` | `CATEGORY#best-picture` |
-| SK | `NOMINEE#<nomineeId>` | `NOMINEE#anora` |
-| nomineeId | | `anora` |
-| name | | `Anora` |
+| SK | `NOMINEE#<nomineeId>` | `NOMINEE#sinners` |
+| nomineeId | | `sinners` |
+| name | | `Sinners` |
 | subtitle | | (optional) e.g., director name, actor name |
 | imageUrl | | (optional) poster/headshot |
 | displayOrder | | `1` |
@@ -120,8 +120,8 @@ Per-academy, per-user, per-category.
 | SK | `PICK#<userId>#<categoryId>` | `PICK#abc123#best-picture` |
 | userId | | `abc123` |
 | categoryId | | `best-picture` |
-| pick1NomineeId | | `anora` |
-| pick2NomineeId | | `the-brutalist` |
+| pick1NomineeId | | `sinners` |
+| pick2NomineeId | | `hamnet` |
 | updatedAt | | `2026-02-28T15:30:00Z` |
 
 **GSI1PK:** `USER#<userId>` — find all picks by a user across academies.
@@ -149,8 +149,8 @@ Per-academy. Created by host.
 | correctAnswer | | `null` (unresolved) or `"Yes"` |
 | basePoints | | `2` |
 | status | | `open`, `locked`, or `resolved` |
-| createdAt | | `2026-03-02T20:00:00Z` |
-| resolvedAt | | `null` or `2026-03-02T23:30:00Z` |
+| createdAt | | `2026-03-15T20:00:00Z` |
+| resolvedAt | | `null` or `2026-03-15T23:30:00Z` |
 
 **Access patterns:**
 - List bonus events for academy: `PK = ACADEMY#<id>`, `SK begins_with BONUS#`
@@ -169,7 +169,7 @@ Per-academy, per-user, per-bonus-event.
 | eventId | | `evt-cry-speech` |
 | prediction | | `"Yes"` |
 | wagerAmount | | `3` (0 = no wager, just prediction) |
-| createdAt | | `2026-03-02T20:15:00Z` |
+| createdAt | | `2026-03-15T20:15:00Z` |
 
 **Access patterns:**
 - Get user's wagers in academy: `PK = ACADEMY#<id>`, `SK begins_with WAGER#<userId>#`
