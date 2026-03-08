@@ -1,14 +1,16 @@
 # Oscars 2026
 
-Predict the winners of the 98th Academy Awards. Create or join an academy (watch party), make your picks across all 24 categories, place wagers on bonus events, and compete on a live leaderboard during the ceremony.
+Predict the winners of the 98th Academy Awards. Create or join a watch party, make your picks across all 24 categories, place wagers on bonus events, and compete on a live leaderboard during the ceremony.
 
 ## Features
 
 - **Oscar Picks** — 1st pick (5 pts) and 2nd pick (3 pts) for each category
 - **Bonus Events** — Custom yes/no or multiple-choice predictions with optional point wagers
-- **Academies** — Create your own party, invite friends, manage members
+- **Watch Parties** — Create your own party, invite friends, manage members
 - **Live Leaderboard** — Rankings update as winners are announced
-- **Host Controls** — Lock/unlock picks, set winners, ceremony mode
+- **Host Controls** — Lock/unlock picks, manage members, rename party
+- **Emcee System** — Ceremony admins set winners globally across all parties of an event type
+- **Ceremony Mode** — Emcee-only view for announcing winners live during the show
 - **Multi-Auth** — Email/password, Google, or Apple Sign-In
 
 ## Stack
