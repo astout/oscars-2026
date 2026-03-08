@@ -17,7 +17,13 @@ import PartyLayout from "./components/PartyLayout.js";
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, isLoading } = useAuthContext();
   if (isLoading) return null;
-  if (!isAuthenticated) return <Navigate to="/auth" replace />;
+  if (!isAuthenticated) {
+    const currentUrl = window.location.pathname + window.location.search;
+    if (currentUrl !== "/") {
+      localStorage.setItem("pendingRedirect", currentUrl);
+    }
+    return <Navigate to="/auth" replace />;
+  }
   return <>{children}</>;
 }
 

@@ -99,11 +99,14 @@ app.get("/:partyId/join/:code", async (c) => {
 
   const existing = await getMember(partyId, userId);
   if (existing) {
+    if (existing.status === "active") {
+      return c.json({ status: "active", partyId });
+    }
     if (existing.status === "left") {
       await updateMemberStatus(partyId, userId, "pending");
       return c.json({ status: "pending", partyId });
     }
-    return c.json({ error: "Already a member or pending" }, 409);
+    return c.json({ status: "pending", partyId });
   }
 
   const user = await ensureUser(userId, email);

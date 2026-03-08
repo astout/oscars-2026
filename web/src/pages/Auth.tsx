@@ -16,7 +16,14 @@ export default function Auth() {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
 
-  if (auth.isAuthenticated) return <Navigate to="/" replace />;
+  if (auth.isAuthenticated) {
+    const pending = localStorage.getItem("pendingRedirect");
+    if (pending) {
+      localStorage.removeItem("pendingRedirect");
+      return <Navigate to={pending} replace />;
+    }
+    return <Navigate to="/" replace />;
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
