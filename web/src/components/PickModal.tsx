@@ -31,12 +31,12 @@ interface Category {
 interface PickModalProps {
   category: Category;
   existingPick?: Pick;
-  academyId: string;
+  partyId: string;
   onClose: () => void;
   onSaved: (pick: Pick) => void;
 }
 
-export default function PickModal({ category, existingPick, academyId, onClose, onSaved }: PickModalProps) {
+export default function PickModal({ category, existingPick, partyId, onClose, onSaved }: PickModalProps) {
   const [pick1, setPick1] = useState<string | null>(existingPick?.pick1NomineeId ?? null);
   const [pick2, setPick2] = useState<string | null>(existingPick?.pick2NomineeId ?? null);
   const [saving, setSaving] = useState(false);
@@ -69,7 +69,7 @@ export default function PickModal({ category, existingPick, academyId, onClose, 
     setError("");
     try {
       const result = await api.put<Pick>(
-        `/academies/${academyId}/picks/${category.categoryId}`,
+        `/parties/${partyId}/picks/${category.categoryId}`,
         { pick1NomineeId: pick1, pick2NomineeId: pick2 }
       );
       onSaved(result);
@@ -106,7 +106,6 @@ export default function PickModal({ category, existingPick, academyId, onClose, 
             </div>
           )}
 
-          {/* Selected picks display */}
           {pick1Nominee && (
             <div style={styles.selectedSection}>
               <div className="pick-indicator pick-1" style={styles.selectedRow}>
@@ -143,7 +142,6 @@ export default function PickModal({ category, existingPick, academyId, onClose, 
             </div>
           )}
 
-          {/* Step prompt */}
           {!isLocked && step < 3 && (
             <p style={styles.prompt}>
               {step === 1
@@ -152,7 +150,6 @@ export default function PickModal({ category, existingPick, academyId, onClose, 
             </p>
           )}
 
-          {/* Nominee list */}
           {!isLocked && step < 3 && (
             <div style={styles.nomineeList} className="stagger-children">
               {(step === 1 ? nominees : availableNominees).map((nominee) => (
@@ -172,7 +169,6 @@ export default function PickModal({ category, existingPick, academyId, onClose, 
             </div>
           )}
 
-          {/* Read-only nominee list for locked */}
           {isLocked && (
             <div style={styles.nomineeList}>
               {nominees.map((nominee) => {
@@ -202,7 +198,6 @@ export default function PickModal({ category, existingPick, academyId, onClose, 
           {error && <p style={styles.error}>{error}</p>}
         </div>
 
-        {/* Confirm button */}
         {!isLocked && (
           <div style={styles.footer}>
             <button
@@ -220,125 +215,23 @@ export default function PickModal({ category, existingPick, academyId, onClose, 
 }
 
 const styles: Record<string, React.CSSProperties> = {
-  body: {
-    padding: "var(--space-4)",
-    display: "flex",
-    flexDirection: "column",
-    gap: "var(--space-4)",
-  },
-  lockedBanner: {
-    display: "flex",
-    alignItems: "center",
-    gap: "var(--space-2)",
-    padding: "var(--space-3) var(--space-4)",
-    background: "rgba(229, 76, 53, 0.1)",
-    borderRadius: "var(--radius-md)",
-    color: "var(--status-locked)",
-    fontSize: "var(--text-sm)",
-    fontWeight: "var(--weight-medium)",
-  },
-  selectedSection: {
-    display: "flex",
-    flexDirection: "column",
-    gap: "var(--space-2)",
-  },
-  selectedRow: {
-    display: "flex",
-    alignItems: "center",
-    gap: "var(--space-3)",
-  },
-  selectedInfo: {
-    flex: 1,
-    display: "flex",
-    flexDirection: "column",
-    minWidth: 0,
-  },
-  selectedLabel: {
-    fontSize: "var(--text-xs)",
-    color: "var(--text-muted)",
-    textTransform: "uppercase" as const,
-    letterSpacing: "var(--tracking-wide)",
-  },
-  selectedName: {
-    fontSize: "var(--text-base)",
-    fontWeight: "var(--weight-medium)",
-    color: "var(--text-primary)",
-    overflow: "hidden",
-    textOverflow: "ellipsis",
-    whiteSpace: "nowrap",
-  },
-  selectedSub: {
-    fontSize: "var(--text-xs)",
-    color: "var(--text-muted)",
-  },
-  selectedPts: {
-    fontSize: "var(--text-sm)",
-    flexShrink: 0,
-  },
-  clearBtn: {
-    padding: "var(--space-1)",
-    minHeight: "auto",
-    color: "var(--text-muted)",
-  },
-  prompt: {
-    fontSize: "var(--text-sm)",
-    color: "var(--text-secondary)",
-    fontWeight: "var(--weight-medium)",
-  },
-  nomineeList: {
-    display: "flex",
-    flexDirection: "column",
-    gap: "var(--space-1)",
-  },
-  nomineeRow: {
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "space-between",
-    gap: "var(--space-3)",
-    padding: "var(--space-3) var(--space-4)",
-    background: "var(--surface-interactive)",
-    border: "0.5px solid var(--border)",
-    borderRadius: "var(--radius-md)",
-    cursor: "pointer",
-    fontFamily: "var(--font-body)",
-    textAlign: "left" as const,
-    width: "100%",
-  },
-  nomineeRowStatic: {
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "space-between",
-    gap: "var(--space-3)",
-    padding: "var(--space-3) var(--space-4)",
-    background: "var(--surface-interactive)",
-    borderRadius: "var(--radius-md)",
-  },
-  nomineeInfo: {
-    flex: 1,
-    display: "flex",
-    flexDirection: "column",
-    minWidth: 0,
-  },
-  nomineeName: {
-    fontSize: "var(--text-base)",
-    fontWeight: "var(--weight-medium)",
-    color: "var(--text-primary)",
-    overflow: "hidden",
-    textOverflow: "ellipsis",
-    whiteSpace: "nowrap",
-  },
-  nomineeSub: {
-    fontSize: "var(--text-xs)",
-    color: "var(--text-muted)",
-  },
-  error: {
-    color: "var(--status-wrong)",
-    fontSize: "var(--text-sm)",
-    textAlign: "center" as const,
-  },
-  footer: {
-    padding: "var(--space-4)",
-    borderTop: "0.5px solid var(--border)",
-    paddingBottom: "calc(var(--space-4) + env(safe-area-inset-bottom))",
-  },
+  body: { padding: "var(--space-4)", display: "flex", flexDirection: "column", gap: "var(--space-4)" },
+  lockedBanner: { display: "flex", alignItems: "center", gap: "var(--space-2)", padding: "var(--space-3) var(--space-4)", background: "rgba(229, 76, 53, 0.1)", borderRadius: "var(--radius-md)", color: "var(--status-locked)", fontSize: "var(--text-sm)", fontWeight: "var(--weight-medium)" },
+  selectedSection: { display: "flex", flexDirection: "column", gap: "var(--space-2)" },
+  selectedRow: { display: "flex", alignItems: "center", gap: "var(--space-3)" },
+  selectedInfo: { flex: 1, display: "flex", flexDirection: "column", minWidth: 0 },
+  selectedLabel: { fontSize: "var(--text-xs)", color: "var(--text-muted)", textTransform: "uppercase" as const, letterSpacing: "var(--tracking-wide)" },
+  selectedName: { fontSize: "var(--text-base)", fontWeight: "var(--weight-medium)", color: "var(--text-primary)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" },
+  selectedSub: { fontSize: "var(--text-xs)", color: "var(--text-muted)" },
+  selectedPts: { fontSize: "var(--text-sm)", flexShrink: 0 },
+  clearBtn: { padding: "var(--space-1)", minHeight: "auto", color: "var(--text-muted)" },
+  prompt: { fontSize: "var(--text-sm)", color: "var(--text-secondary)", fontWeight: "var(--weight-medium)" },
+  nomineeList: { display: "flex", flexDirection: "column", gap: "var(--space-1)" },
+  nomineeRow: { display: "flex", alignItems: "center", justifyContent: "space-between", gap: "var(--space-3)", padding: "var(--space-3) var(--space-4)", background: "var(--surface-interactive)", border: "0.5px solid var(--border)", borderRadius: "var(--radius-md)", cursor: "pointer", fontFamily: "var(--font-body)", textAlign: "left" as const, width: "100%" },
+  nomineeRowStatic: { display: "flex", alignItems: "center", justifyContent: "space-between", gap: "var(--space-3)", padding: "var(--space-3) var(--space-4)", background: "var(--surface-interactive)", borderRadius: "var(--radius-md)" },
+  nomineeInfo: { flex: 1, display: "flex", flexDirection: "column", minWidth: 0 },
+  nomineeName: { fontSize: "var(--text-base)", fontWeight: "var(--weight-medium)", color: "var(--text-primary)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" },
+  nomineeSub: { fontSize: "var(--text-xs)", color: "var(--text-muted)" },
+  error: { color: "var(--status-wrong)", fontSize: "var(--text-sm)", textAlign: "center" as const },
+  footer: { padding: "var(--space-4)", borderTop: "0.5px solid var(--border)", paddingBottom: "calc(var(--space-4) + env(safe-area-inset-bottom))" },
 };

@@ -4,22 +4,22 @@ import { CaretLeft, UserCircle } from "@phosphor-icons/react";
 import { api } from "../api/client.js";
 import BottomNav from "./BottomNav.js";
 
-interface Party {
-  academyId: string;
+interface PartyInfo {
+  partyId: string;
   name: string;
 }
 
 export default function PartyLayout() {
-  const { academyId } = useParams<{ academyId: string }>();
+  const { partyId } = useParams<{ partyId: string }>();
   const navigate = useNavigate();
-  const [party, setParty] = useState<Party | null>(null);
+  const [party, setParty] = useState<PartyInfo | null>(null);
 
   useEffect(() => {
-    if (!academyId) return;
-    api.get<Party>(`/academies/${academyId}`).then(setParty).catch(() => {});
-  }, [academyId]);
+    if (!partyId) return;
+    api.get<PartyInfo>(`/parties/${partyId}`).then(setParty).catch(() => {});
+  }, [partyId]);
 
-  if (!academyId) return null;
+  if (!partyId) return null;
 
   return (
     <>
@@ -45,7 +45,7 @@ export default function PartyLayout() {
         </button>
       </div>
       <Outlet />
-      <BottomNav academyId={academyId} />
+      <BottomNav partyId={partyId} />
     </>
   );
 }

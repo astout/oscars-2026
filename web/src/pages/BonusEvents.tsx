@@ -27,26 +27,25 @@ interface BonusEvent {
 }
 
 export default function BonusEvents() {
-  const { academyId } = useParams<{ academyId: string }>();
+  const { partyId } = useParams<{ partyId: string }>();
   const [events, setEvents] = useState<BonusEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
   useEffect(() => {
     api
-      .get<BonusEvent[]>(`/academies/${academyId}/bonus`)
+      .get<BonusEvent[]>(`/parties/${partyId}/bonus`)
       .then(setEvents)
       .catch((err) => setError(err instanceof Error ? err.message : "Failed to load bonus events"))
       .finally(() => setLoading(false));
-  }, [academyId]);
+  }, [partyId]);
 
   const handleWager = async (eventId: string, prediction: string, wagerAmount: number) => {
     const wagerResponse = await api.post<Wager>(
-      `/academies/${academyId}/bonus/${eventId}/wager`,
+      `/parties/${partyId}/bonus/${eventId}/wager`,
       { prediction, wagerAmount }
     );
 
-    // Optimistically update local state
     setEvents((prev) =>
       prev.map((ev) =>
         ev.eventId === eventId ? { ...ev, userWager: wagerResponse } : ev
@@ -57,9 +56,7 @@ export default function BonusEvents() {
   if (loading) {
     return (
       <div className="page">
-        <div className="page-header">
-          <h1 className="page-title">Bonus Events</h1>
-        </div>
+        <div className="page-header"><h1 className="page-title">Bonus Events</h1></div>
         <div className="page-content">
           <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-3)" }}>
             {[1, 2, 3].map((i) => (
@@ -74,13 +71,9 @@ export default function BonusEvents() {
   if (error) {
     return (
       <div className="page">
-        <div className="page-header">
-          <h1 className="page-title">Bonus Events</h1>
-        </div>
+        <div className="page-header"><h1 className="page-title">Bonus Events</h1></div>
         <div className="page-content">
-          <p style={{ color: "var(--status-wrong)", fontSize: "var(--text-sm)", textAlign: "center" }}>
-            {error}
-          </p>
+          <p style={{ color: "var(--status-wrong)", fontSize: "var(--text-sm)", textAlign: "center" }}>{error}</p>
         </div>
       </div>
     );
@@ -89,16 +82,12 @@ export default function BonusEvents() {
   if (events.length === 0) {
     return (
       <div className="page animate-fade-in-up">
-        <div className="page-header">
-          <h1 className="page-title">Bonus Events</h1>
-        </div>
+        <div className="page-header"><h1 className="page-title">Bonus Events</h1></div>
         <div className="page-content">
           <div className="empty-state">
             <Sparkle size={48} className="empty-state-icon" />
             <p className="empty-state-title">No bonus events yet</p>
-            <p className="empty-state-text">
-              Bonus bingo events will appear here when the host creates them.
-            </p>
+            <p className="empty-state-text">Bonus bingo events will appear here when the host creates them.</p>
           </div>
         </div>
       </div>

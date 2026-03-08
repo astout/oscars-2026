@@ -1,38 +1,42 @@
 import { useState, useEffect, useCallback } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { Crown, Copy, Check, Users, Link, X, UserPlus, Lock, LockOpen, DoorOpen } from "@phosphor-icons/react";
+import { Crown, Copy, Check, Users, Link, X, UserPlus, Lock, LockOpen, DoorOpen, PencilSimple } from "@phosphor-icons/react";
 import { api } from "../api/client.js";
 import { useAuthContext } from "../auth/AuthContext.js";
-import type { Academy, AcademyMember } from "../types/academy.js";
+import type { Party, PartyMember } from "../types/party.js";
 
 export default function WatchPartyDetail() {
-  const { academyId } = useParams<{ academyId: string }>();
+  const { partyId } = useParams<{ partyId: string }>();
   const navigate = useNavigate();
   const { userId } = useAuthContext();
   const [confirmLeave, setConfirmLeave] = useState(false);
 
-  const [party, setParty] = useState<Academy | null>(null);
-  const [members, setMembers] = useState<AcademyMember[]>([]);
+  const [party, setParty] = useState<Party | null>(null);
+  const [members, setMembers] = useState<PartyMember[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [copied, setCopied] = useState(false);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [editingName, setEditingName] = useState(false);
+  const [partyName, setPartyName] = useState("");
+  const [confirmRemove, setConfirmRemove] = useState<string | null>(null);
 
   const fetchData = useCallback(async () => {
-    if (!academyId) return;
+    if (!partyId) return;
     try {
       const [partyData, memberData] = await Promise.all([
-        api.get<Academy>(`/academies/${academyId}`),
-        api.get<AcademyMember[]>(`/academies/${academyId}/members`),
+        api.get<Party>(`/parties/${partyId}`),
+        api.get<PartyMember[]>(`/parties/${partyId}/members`),
       ]);
       setParty(partyData);
+      setPartyName(partyData.name);
       setMembers(memberData);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to load party");
     } finally {
       setLoading(false);
     }
-  }, [academyId]);
+  }, [partyId]);
 
   useEffect(() => {
     fetchData();
@@ -42,17 +46,17 @@ export default function WatchPartyDetail() {
 
   const copyInviteLink = async () => {
     if (!party) return;
-    const link = `${window.location.origin}/join?code=${party.inviteCode}&party=${party.academyId}`;
+    const link = `${window.location.origin}/join?code=${party.inviteCode}&party=${party.partyId}`;
     await navigator.clipboard.writeText(link);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
 
   const handleMemberAction = async (memberId: string, action: "approve" | "remove") => {
-    if (!academyId) return;
+    if (!partyId) return;
     setActionLoading(memberId);
     try {
-      await api.patch(`/academies/${academyId}/members/${memberId}`, { action });
+      await api.patch(`/parties/${partyId}/members/${memberId}`, { action });
       await fetchData();
     } catch (err) {
       setError(err instanceof Error ? err.message : `Failed to ${action} member`);
@@ -82,9 +86,7 @@ export default function WatchPartyDetail() {
     return (
       <div className="page">
         <div className="page-content">
-          <p style={{ color: "var(--status-wrong)", fontSize: "var(--text-sm)", textAlign: "center" }}>
-            {error}
-          </p>
+          <p style={{ color: "var(--status-wrong)", fontSize: "var(--text-sm)", textAlign: "center" }}>{error}</p>
         </div>
       </div>
     );
@@ -127,6 +129,55 @@ export default function WatchPartyDetail() {
                 Host Controls
               </p>
             </div>
+
+            {/* Rename */}
+            {editingName ? (
+              <form
+                onSubmit={async (e) => {
+                  e.preventDefault();
+                  if (!partyName.trim() || partyName.trim() === party.name) {
+                    setEditingName(false);
+                    return;
+                  }
+                  setActionLoading("rename");
+                  try {
+                    await api.patch(`/parties/${partyId}`, { name: partyName.trim() });
+                    setParty({ ...party, name: partyName.trim() });
+                    setEditingName(false);
+                  } catch (err) {
+                    setError(err instanceof Error ? err.message : "Failed to rename");
+                  } finally {
+                    setActionLoading(null);
+                  }
+                }}
+                style={{ display: "flex", gap: "var(--space-2)", marginBottom: "var(--space-3)" }}
+              >
+                <input
+                  className="input"
+                  value={partyName}
+                  onChange={(e) => setPartyName(e.target.value)}
+                  maxLength={50}
+                  autoFocus
+                  style={{ flex: 1 }}
+                />
+                <button className="btn btn-primary btn-sm" type="submit" disabled={actionLoading === "rename"}>
+                  <Check size={16} weight="bold" />
+                </button>
+                <button className="btn btn-ghost btn-sm" type="button" onClick={() => { setEditingName(false); setPartyName(party.name); }}>
+                  <X size={16} />
+                </button>
+              </form>
+            ) : (
+              <button
+                className="btn btn-secondary btn-full"
+                onClick={() => setEditingName(true)}
+                style={{ marginBottom: "var(--space-3)" }}
+              >
+                <PencilSimple size={18} weight="bold" />
+                Rename Party
+              </button>
+            )}
+
             <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-2)" }}>
               <button
                 className={`btn ${party.allLocked ? "btn-primary" : "btn-secondary"} btn-full`}
@@ -134,7 +185,7 @@ export default function WatchPartyDetail() {
                   setActionLoading("lock");
                   try {
                     const endpoint = party.allLocked ? "unlock" : "lock";
-                    await api.post(`/academies/${academyId}/${endpoint}`);
+                    await api.post(`/parties/${partyId}/${endpoint}`);
                     setParty({ ...party, allLocked: !party.allLocked });
                   } catch (err) {
                     setError(err instanceof Error ? err.message : "Failed");
@@ -152,7 +203,7 @@ export default function WatchPartyDetail() {
               </button>
               <button
                 className="btn btn-secondary btn-full"
-                onClick={() => navigate(`/party/${academyId}/ceremony`)}
+                onClick={() => navigate(`/party/${partyId}/ceremony`)}
               >
                 <Crown size={18} weight="bold" style={{ color: "var(--gold)" }} />
                 Ceremony Mode
@@ -162,9 +213,7 @@ export default function WatchPartyDetail() {
         )}
 
         {error && (
-          <p style={{ color: "var(--status-wrong)", fontSize: "var(--text-sm)", marginBottom: "var(--space-4)" }}>
-            {error}
-          </p>
+          <p style={{ color: "var(--status-wrong)", fontSize: "var(--text-sm)", marginBottom: "var(--space-4)" }}>{error}</p>
         )}
 
         {/* Pending Members (host only) */}
@@ -175,38 +224,20 @@ export default function WatchPartyDetail() {
               <p style={{ fontSize: "var(--text-sm)", fontWeight: "var(--weight-medium)", color: "var(--text-secondary)" }}>
                 Pending Requests
               </p>
-              <span className="badge badge-pending" style={{ marginLeft: "auto" }}>
-                {pendingMembers.length}
-              </span>
+              <span className="badge badge-pending" style={{ marginLeft: "auto" }}>{pendingMembers.length}</span>
             </div>
             <div className="stagger-children" style={{ display: "flex", flexDirection: "column", gap: "var(--space-2)" }}>
               {pendingMembers.map((member) => (
-                <div
-                  key={member.userId}
-                  className="card"
-                  style={{ display: "flex", alignItems: "center", gap: "var(--space-3)" }}
-                >
+                <div key={member.userId} className="card" style={{ display: "flex", alignItems: "center", gap: "var(--space-3)" }}>
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <p style={{ fontSize: "var(--text-base)", color: "var(--text-primary)", fontWeight: "var(--weight-medium)" }}>
-                      {member.displayName}
-                    </p>
+                    <p style={{ fontSize: "var(--text-base)", color: "var(--text-primary)", fontWeight: "var(--weight-medium)" }}>{member.displayName}</p>
                     <span className="badge badge-pending">Pending</span>
                   </div>
                   <div style={{ display: "flex", gap: "var(--space-2)", flexShrink: 0 }}>
-                    <button
-                      className="btn btn-primary btn-sm"
-                      onClick={() => handleMemberAction(member.userId, "approve")}
-                      disabled={actionLoading === member.userId}
-                      aria-label={`Approve ${member.displayName}`}
-                    >
+                    <button className="btn btn-primary btn-sm" onClick={() => handleMemberAction(member.userId, "approve")} disabled={actionLoading === member.userId} aria-label={`Approve ${member.displayName}`}>
                       <Check size={16} weight="bold" />
                     </button>
-                    <button
-                      className="btn btn-danger btn-sm"
-                      onClick={() => handleMemberAction(member.userId, "remove")}
-                      disabled={actionLoading === member.userId}
-                      aria-label={`Deny ${member.displayName}`}
-                    >
+                    <button className="btn btn-danger btn-sm" onClick={() => handleMemberAction(member.userId, "remove")} disabled={actionLoading === member.userId} aria-label={`Deny ${member.displayName}`}>
                       <X size={16} weight="bold" />
                     </button>
                   </div>
@@ -220,65 +251,47 @@ export default function WatchPartyDetail() {
         <div>
           <div style={{ display: "flex", alignItems: "center", gap: "var(--space-2)", marginBottom: "var(--space-3)" }}>
             <Users size={16} weight="bold" style={{ color: "var(--gold)" }} />
-            <p style={{ fontSize: "var(--text-sm)", fontWeight: "var(--weight-medium)", color: "var(--text-secondary)" }}>
-              Members
-            </p>
-            <span className="badge badge-pending" style={{ marginLeft: "auto" }}>
-              {activeMembers.length}
-            </span>
+            <p style={{ fontSize: "var(--text-sm)", fontWeight: "var(--weight-medium)", color: "var(--text-secondary)" }}>Members</p>
+            <span className="badge badge-pending" style={{ marginLeft: "auto" }}>{activeMembers.length}</span>
           </div>
           <div className="stagger-children" style={{ display: "flex", flexDirection: "column", gap: "var(--space-2)" }}>
             {activeMembers.map((member) => (
-              <div
-                key={member.userId}
-                className="card"
-                style={{ display: "flex", alignItems: "center", gap: "var(--space-3)" }}
-              >
+              <div key={member.userId} className="card" style={{ display: "flex", alignItems: "center", gap: "var(--space-3)" }}>
                 <div
                   style={{
-                    width: 36,
-                    height: 36,
-                    borderRadius: "var(--radius-pill)",
+                    width: 36, height: 36, borderRadius: "var(--radius-pill)",
                     background: member.role === "host" ? "var(--gold-glow)" : "var(--surface-interactive)",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    flexShrink: 0,
+                    display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
                     border: member.role === "host" ? "1px solid var(--border-gold)" : "1px solid var(--border)",
                   }}
                 >
-                  <span
-                    style={{
-                      fontSize: "var(--text-sm)",
-                      fontWeight: "var(--weight-semibold)",
-                      color: member.role === "host" ? "var(--gold)" : "var(--text-secondary)",
-                    }}
-                  >
+                  <span style={{ fontSize: "var(--text-sm)", fontWeight: "var(--weight-semibold)", color: member.role === "host" ? "var(--gold)" : "var(--text-secondary)" }}>
                     {member.displayName.charAt(0).toUpperCase()}
                   </span>
                 </div>
-                <p
-                  style={{
-                    flex: 1,
-                    fontSize: "var(--text-base)",
-                    color: "var(--text-primary)",
-                    fontWeight: "var(--weight-medium)",
-                  }}
-                >
+                <p style={{ flex: 1, fontSize: "var(--text-base)", color: "var(--text-primary)", fontWeight: "var(--weight-medium)" }}>
                   {member.displayName}
+                  {member.userId === userId && (
+                    <span style={{ color: "var(--text-muted)", fontWeight: "var(--weight-normal)" }}> (you)</span>
+                  )}
                 </p>
                 {member.role === "host" && (
                   <Crown size={18} weight="fill" style={{ color: "var(--gold)", flexShrink: 0 }} />
                 )}
-                {isHost && member.role !== "host" && (
-                  <button
-                    className="btn btn-ghost btn-sm"
-                    onClick={() => handleMemberAction(member.userId, "remove")}
-                    disabled={actionLoading === member.userId}
-                    aria-label={`Remove ${member.displayName}`}
-                  >
+                {isHost && member.role !== "host" && confirmRemove !== member.userId && (
+                  <button className="btn btn-ghost btn-sm" onClick={() => setConfirmRemove(member.userId)} aria-label={`Remove ${member.displayName}`}>
                     <X size={16} />
                   </button>
+                )}
+                {isHost && confirmRemove === member.userId && (
+                  <div style={{ display: "flex", gap: "var(--space-2)", flexShrink: 0 }}>
+                    <button className="btn btn-danger btn-sm" onClick={() => { handleMemberAction(member.userId, "remove"); setConfirmRemove(null); }} disabled={actionLoading === member.userId}>
+                      Remove
+                    </button>
+                    <button className="btn btn-ghost btn-sm" onClick={() => setConfirmRemove(null)}>
+                      Cancel
+                    </button>
+                  </div>
                 )}
               </div>
             ))}
@@ -303,19 +316,13 @@ export default function WatchPartyDetail() {
                   Your picks will be saved if you rejoin later.
                 </p>
                 <div className="confirm-actions" style={{ width: "100%" }}>
-                  <button
-                    className="btn btn-ghost"
-                    onClick={() => setConfirmLeave(false)}
-                    style={{ flex: 1 }}
-                  >
-                    Cancel
-                  </button>
+                  <button className="btn btn-ghost" onClick={() => setConfirmLeave(false)} style={{ flex: 1 }}>Cancel</button>
                   <button
                     className="btn btn-danger"
                     onClick={async () => {
                       setActionLoading("leave");
                       try {
-                        await api.post(`/academies/${academyId}/leave`);
+                        await api.post(`/parties/${partyId}/leave`);
                         navigate("/");
                       } catch (err) {
                         setError(err instanceof Error ? err.message : "Failed to leave");

@@ -1,5 +1,6 @@
-export interface Academy {
-  academyId: string;
+export interface Party {
+  partyId: string;
+  eventId: string;
   name: string;
   hostUserId: string;
   inviteCode: string;
@@ -8,7 +9,7 @@ export interface Academy {
   role?: "host" | "member";
 }
 
-export interface AcademyMember {
+export interface PartyMember {
   userId: string;
   displayName: string;
   role: "host" | "member";

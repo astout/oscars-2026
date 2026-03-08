@@ -1,7 +1,7 @@
 import { Hono } from "hono";
 import { handle } from "hono/aws-lambda";
 import { authMiddleware } from "./middleware/auth.js";
-import academies from "./routes/academies.js";
+import parties from "./routes/parties.js";
 import categories from "./routes/categories.js";
 import picks from "./routes/picks.js";
 import bonus from "./routes/bonus.js";
@@ -19,12 +19,12 @@ app.use("/api/*", authMiddleware);
 
 // Mount routes
 app.route("/api/v1/users", users);
-app.route("/api/v1/academies", academies);
+app.route("/api/v1/parties", parties);
 app.route("/api/v1/categories", categories);
-app.route("/api/v1/academies", picks);
-app.route("/api/v1/academies", bonus);
-app.route("/api/v1/academies", leaderboard);
-app.route("/api/v1/academies", admin);
+app.route("/api/v1/parties", picks);
+app.route("/api/v1/parties", bonus);
+app.route("/api/v1/parties", leaderboard);
+app.route("/api/v1/parties", admin);
 
 export const handler = handle(app);
 export default app;

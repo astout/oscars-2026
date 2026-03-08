@@ -1,28 +1,38 @@
 import type {
-  Category,
   Pick,
-  BonusEvent,
-  Wager,
-  AcademyMember,
   LeaderboardEntry,
 } from "../types/index.js";
-import { getMembers } from "./academies.js";
+import { getMembers } from "./parties.js";
 import { getCategories } from "./categories.js";
 import { getAllPicks } from "./picks.js";
 import { getBonusEvents, getWagers } from "./bonus.js";
+import { getUser } from "./users.js";
 
 export async function computeLeaderboard(
-  academyId: string
+  partyId: string
 ): Promise<LeaderboardEntry[]> {
   const [members, categories, picks, bonusEvents, wagers] = await Promise.all([
-    getMembers(academyId),
+    getMembers(partyId),
     getCategories(),
-    getAllPicks(academyId),
-    getBonusEvents(academyId),
-    getWagers(academyId),
+    getAllPicks(partyId),
+    getBonusEvents(partyId),
+    getWagers(partyId),
   ]);
 
   const activeMembers = members.filter((m) => m.status === "active");
+
+  // Look up actual display names from user profiles
+  const userProfiles = await Promise.all(
+    activeMembers.map((m) => getUser(m.userId))
+  );
+  const displayNameMap = new Map<string, string>();
+  for (let i = 0; i < activeMembers.length; i++) {
+    displayNameMap.set(
+      activeMembers[i].userId,
+      userProfiles[i]?.displayName || activeMembers[i].displayName
+    );
+  }
+
   const resolvedCategories = categories.filter((c) => c.winnerId);
   const resolvedEvents = bonusEvents.filter((e) => e.status === "resolved");
 
@@ -33,7 +43,7 @@ export async function computeLeaderboard(
   }
 
   // Index wagers by `userId:eventId`
-  const wagerMap = new Map<string, Wager>();
+  const wagerMap = new Map<string, { prediction: string; wagerAmount: number }>();
   for (const w of wagers) {
     wagerMap.set(`${w.userId}:${w.eventId}`, w);
   }
@@ -61,7 +71,7 @@ export async function computeLeaderboard(
       if (!wager) continue;
       if (wager.prediction === event.correctAnswer) {
         bonusPoints += event.basePoints;
-        bonusPoints += wager.wagerAmount; // net gain from wager
+        bonusPoints += wager.wagerAmount;
       } else {
         bonusPoints -= wager.wagerAmount;
       }
@@ -71,7 +81,7 @@ export async function computeLeaderboard(
 
     return {
       userId: member.userId,
-      displayName: member.displayName,
+      displayName: displayNameMap.get(member.userId) || member.displayName,
       categoryPoints,
       bonusPoints,
       totalPoints,
@@ -81,13 +91,11 @@ export async function computeLeaderboard(
     };
   });
 
-  // Sort: total desc, then correctFirst desc as tiebreaker
   entries.sort(
     (a, b) =>
       b.totalPoints - a.totalPoints || b.correctFirst - a.correctFirst
   );
 
-  // Assign ranks (handle ties)
   for (let i = 0; i < entries.length; i++) {
     if (
       i > 0 &&

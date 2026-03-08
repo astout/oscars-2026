@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { useParams } from "react-router-dom";
-import { Trophy } from "@phosphor-icons/react";
+import { FilmSlate } from "@phosphor-icons/react";
 import { api } from "../api/client.js";
 import CategoryCard from "../components/CategoryCard.js";
 import PickModal from "../components/PickModal.js";
@@ -33,7 +33,7 @@ interface Pick {
 }
 
 export default function Categories() {
-  const { academyId } = useParams<{ academyId: string }>();
+  const { partyId } = useParams<{ partyId: string }>();
   const [categories, setCategories] = useState<Category[]>([]);
   const [picksMap, setPicksMap] = useState<Map<string, Pick>>(new Map());
   const [loading, setLoading] = useState(true);
@@ -41,13 +41,13 @@ export default function Categories() {
   const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
 
   const fetchData = useCallback(async () => {
-    if (!academyId) return;
+    if (!partyId) return;
     setLoading(true);
     setError("");
     try {
       const [cats, picks] = await Promise.all([
         api.get<Category[]>("/categories"),
-        api.get<Pick[]>(`/academies/${academyId}/picks`),
+        api.get<Pick[]>(`/parties/${partyId}/picks`),
       ]);
       setCategories(cats.sort((a, b) => a.displayOrder - b.displayOrder));
       setPicksMap(new Map(picks.map((p) => [p.categoryId, p])));
@@ -56,7 +56,7 @@ export default function Categories() {
     } finally {
       setLoading(false);
     }
-  }, [academyId]);
+  }, [partyId]);
 
   useEffect(() => {
     fetchData();
@@ -74,7 +74,7 @@ export default function Categories() {
   const pickedCount = picksMap.size;
   const totalCount = categories.length;
 
-  if (!academyId) return null;
+  if (!partyId) return null;
 
   return (
     <div className="page">
@@ -84,7 +84,7 @@ export default function Categories() {
         </div>
         <div className="page-header animate-fade-in-up">
           <h1 className="page-title" style={styles.title}>
-            <Trophy size={24} weight="fill" style={{ color: "var(--gold)" }} />
+            <FilmSlate size={24} weight="fill" style={{ color: "var(--gold)" }} />
             Categories
           </h1>
           {!loading && (
@@ -120,7 +120,7 @@ export default function Categories() {
         <PickModal
           category={selectedCategory}
           existingPick={picksMap.get(selectedCategory.categoryId)}
-          academyId={academyId}
+          partyId={partyId}
           onClose={() => setSelectedCategory(null)}
           onSaved={handlePickSaved}
         />
@@ -130,18 +130,7 @@ export default function Categories() {
 }
 
 const styles: Record<string, React.CSSProperties> = {
-  title: {
-    display: "flex",
-    alignItems: "center",
-    gap: "var(--space-2)",
-  },
-  error: {
-    color: "var(--status-wrong)",
-    fontSize: "var(--text-sm)",
-    textAlign: "center",
-    padding: "var(--space-4)",
-  },
-  skeleton: {
-    height: 120,
-  },
+  title: { display: "flex", alignItems: "center", gap: "var(--space-2)" },
+  error: { color: "var(--status-wrong)", fontSize: "var(--text-sm)", textAlign: "center", padding: "var(--space-4)" },
+  skeleton: { height: 120 },
 };

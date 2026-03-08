@@ -1,12 +1,12 @@
 import { Hono } from "hono";
 import { setWinner, clearWinner, setCategoryLocked } from "../db/categories.js";
-import { hostGuard } from "../middleware/academy-access.js";
+import { emceeGuard } from "../middleware/emcee-access.js";
 import { param } from "../middleware/params.js";
 
 const app = new Hono();
 
-// Set winner for a category
-app.post("/:academyId/categories/:categoryId/winner", hostGuard, async (c) => {
+// Set winner for a category (emcee only)
+app.post("/:partyId/categories/:categoryId/winner", emceeGuard, async (c) => {
   const categoryId = param(c, "categoryId");
   const { winnerId } = await c.req.json();
 
@@ -23,20 +23,16 @@ app.post("/:academyId/categories/:categoryId/winner", hostGuard, async (c) => {
   return c.json({ categoryId, winnerId });
 });
 
-// Lock single category
-app.post("/:academyId/categories/:categoryId/lock", hostGuard, async (c) => {
+// Lock single category (emcee only)
+app.post("/:partyId/categories/:categoryId/lock", emceeGuard, async (c) => {
   await setCategoryLocked(param(c, "categoryId"), true);
   return c.json({ locked: true });
 });
 
-// Unlock single category
-app.post(
-  "/:academyId/categories/:categoryId/unlock",
-  hostGuard,
-  async (c) => {
-    await setCategoryLocked(param(c, "categoryId"), false);
-    return c.json({ locked: false });
-  }
-);
+// Unlock single category (emcee only)
+app.post("/:partyId/categories/:categoryId/unlock", emceeGuard, async (c) => {
+  await setCategoryLocked(param(c, "categoryId"), false);
+  return c.json({ locked: false });
+});
 
 export default app;

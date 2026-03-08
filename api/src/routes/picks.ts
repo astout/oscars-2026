@@ -1,25 +1,25 @@
 import { Hono } from "hono";
 import { setPick, getUserPicks, getAllPicks } from "../db/picks.js";
 import { getCategory } from "../db/categories.js";
-import { getAcademy } from "../db/academies.js";
+import { getParty } from "../db/parties.js";
 import { getUser } from "../middleware/auth.js";
-import { memberGuard } from "../middleware/academy-access.js";
+import { memberGuard } from "../middleware/party-access.js";
 import { param } from "../middleware/params.js";
 import type { Pick } from "../types/index.js";
 
 const app = new Hono();
 
 // Get current user's picks
-app.get("/:academyId/picks", memberGuard, async (c) => {
+app.get("/:partyId/picks", memberGuard, async (c) => {
   const { userId } = getUser(c);
-  const picks = await getUserPicks(param(c, "academyId"), userId);
+  const picks = await getUserPicks(param(c, "partyId"), userId);
   return c.json(picks);
 });
 
 // Set pick for a category
-app.put("/:academyId/picks/:categoryId", memberGuard, async (c) => {
+app.put("/:partyId/picks/:categoryId", memberGuard, async (c) => {
   const { userId } = getUser(c);
-  const academyId = param(c, "academyId");
+  const partyId = param(c, "partyId");
   const categoryId = param(c, "categoryId");
   const { pick1NomineeId, pick2NomineeId } = await c.req.json();
 
@@ -30,13 +30,13 @@ app.put("/:academyId/picks/:categoryId", memberGuard, async (c) => {
     return c.json({ error: "Picks must be different" }, 400);
   }
 
-  const [category, academy] = await Promise.all([
+  const [category, party] = await Promise.all([
     getCategory(categoryId),
-    getAcademy(academyId),
+    getParty(partyId),
   ]);
 
   if (!category) return c.json({ error: "Category not found" }, 404);
-  if (category.locked || academy?.allLocked) {
+  if (category.locked || party?.allLocked) {
     return c.json({ error: "Picks are locked" }, 403);
   }
 
@@ -48,13 +48,13 @@ app.put("/:academyId/picks/:categoryId", memberGuard, async (c) => {
     updatedAt: new Date().toISOString(),
   };
 
-  await setPick(academyId, pick);
+  await setPick(partyId, pick);
   return c.json(pick);
 });
 
 // Get all picks (for leaderboard detail views)
-app.get("/:academyId/picks/all", memberGuard, async (c) => {
-  const picks = await getAllPicks(param(c, "academyId"));
+app.get("/:partyId/picks/all", memberGuard, async (c) => {
+  const picks = await getAllPicks(param(c, "partyId"));
   return c.json(picks);
 });
 

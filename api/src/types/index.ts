@@ -6,8 +6,16 @@ export interface User {
   createdAt: string;
 }
 
-export interface Academy {
-  academyId: string;
+export interface Event {
+  eventId: string;
+  name: string;
+  templatePartyId: string;
+  createdAt: string;
+}
+
+export interface Party {
+  partyId: string;
+  eventId: string;
   name: string;
   hostUserId: string;
   inviteCode: string;
@@ -15,7 +23,7 @@ export interface Academy {
   createdAt: string;
 }
 
-export interface AcademyMember {
+export interface PartyMember {
   userId: string;
   displayName: string;
   role: "host" | "member";

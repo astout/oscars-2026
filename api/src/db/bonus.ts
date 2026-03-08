@@ -7,14 +7,14 @@ import { db, TABLE_NAME } from "./client.js";
 import type { BonusEvent, Wager } from "../types/index.js";
 
 export async function createBonusEvent(
-  academyId: string,
+  partyId: string,
   event: BonusEvent
 ): Promise<void> {
   await db.send(
     new PutCommand({
       TableName: TABLE_NAME,
       Item: {
-        PK: `ACADEMY#${academyId}`,
+        PK: `PARTY#${partyId}`,
         SK: `BONUS#${event.eventId}`,
         ...event,
       },
@@ -23,14 +23,14 @@ export async function createBonusEvent(
 }
 
 export async function getBonusEvents(
-  academyId: string
+  partyId: string
 ): Promise<BonusEvent[]> {
   const result = await db.send(
     new QueryCommand({
       TableName: TABLE_NAME,
       KeyConditionExpression: "PK = :pk AND begins_with(SK, :sk)",
       ExpressionAttributeValues: {
-        ":pk": `ACADEMY#${academyId}`,
+        ":pk": `PARTY#${partyId}`,
         ":sk": "BONUS#",
       },
     })
@@ -39,7 +39,7 @@ export async function getBonusEvents(
 }
 
 export async function resolveBonusEvent(
-  academyId: string,
+  partyId: string,
   eventId: string,
   correctAnswer: string
 ): Promise<void> {
@@ -47,7 +47,7 @@ export async function resolveBonusEvent(
     new UpdateCommand({
       TableName: TABLE_NAME,
       Key: {
-        PK: `ACADEMY#${academyId}`,
+        PK: `PARTY#${partyId}`,
         SK: `BONUS#${eventId}`,
       },
       UpdateExpression:
@@ -63,14 +63,14 @@ export async function resolveBonusEvent(
 }
 
 export async function placeWager(
-  academyId: string,
+  partyId: string,
   wager: Wager
 ): Promise<void> {
   await db.send(
     new PutCommand({
       TableName: TABLE_NAME,
       Item: {
-        PK: `ACADEMY#${academyId}`,
+        PK: `PARTY#${partyId}`,
         SK: `WAGER#${wager.userId}#${wager.eventId}`,
         ...wager,
       },
@@ -78,13 +78,13 @@ export async function placeWager(
   );
 }
 
-export async function getWagers(academyId: string): Promise<Wager[]> {
+export async function getWagers(partyId: string): Promise<Wager[]> {
   const result = await db.send(
     new QueryCommand({
       TableName: TABLE_NAME,
       KeyConditionExpression: "PK = :pk AND begins_with(SK, :sk)",
       ExpressionAttributeValues: {
-        ":pk": `ACADEMY#${academyId}`,
+        ":pk": `PARTY#${partyId}`,
         ":sk": "WAGER#",
       },
     })
@@ -93,7 +93,7 @@ export async function getWagers(academyId: string): Promise<Wager[]> {
 }
 
 export async function getUserWagers(
-  academyId: string,
+  partyId: string,
   userId: string
 ): Promise<Wager[]> {
   const result = await db.send(
@@ -101,7 +101,7 @@ export async function getUserWagers(
       TableName: TABLE_NAME,
       KeyConditionExpression: "PK = :pk AND begins_with(SK, :sk)",
       ExpressionAttributeValues: {
-        ":pk": `ACADEMY#${academyId}`,
+        ":pk": `PARTY#${partyId}`,
         ":sk": `WAGER#${userId}#`,
       },
     })

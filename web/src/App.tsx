@@ -31,7 +31,7 @@ export default function App() {
       <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
 
       {/* Party pages with bottom nav */}
-      <Route path="/party/:academyId" element={<ProtectedRoute><PartyLayout /></ProtectedRoute>}>
+      <Route path="/party/:partyId" element={<ProtectedRoute><PartyLayout /></ProtectedRoute>}>
         <Route index element={<Navigate to="categories" replace />} />
         <Route path="categories" element={<Categories />} />
         <Route path="leaderboard" element={<Leaderboard />} />

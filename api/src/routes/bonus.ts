@@ -8,20 +8,20 @@ import {
   getUserWagers,
 } from "../db/bonus.js";
 import { getUser } from "../middleware/auth.js";
-import { memberGuard, hostGuard } from "../middleware/academy-access.js";
+import { memberGuard, hostGuard } from "../middleware/party-access.js";
 import { param } from "../middleware/params.js";
 import type { BonusEvent, Wager } from "../types/index.js";
 
 const app = new Hono();
 
 // List bonus events + user's wagers
-app.get("/:academyId/bonus", memberGuard, async (c) => {
+app.get("/:partyId/bonus", memberGuard, async (c) => {
   const { userId } = getUser(c);
-  const academyId = param(c, "academyId");
+  const partyId = param(c, "partyId");
 
   const [events, wagers] = await Promise.all([
-    getBonusEvents(academyId),
-    getUserWagers(academyId, userId),
+    getBonusEvents(partyId),
+    getUserWagers(partyId, userId),
   ]);
 
   const wagerMap = new Map(wagers.map((w) => [w.eventId, w]));
@@ -35,8 +35,8 @@ app.get("/:academyId/bonus", memberGuard, async (c) => {
 });
 
 // Create bonus event (host only)
-app.post("/:academyId/bonus", hostGuard, async (c) => {
-  const academyId = param(c, "academyId");
+app.post("/:partyId/bonus", hostGuard, async (c) => {
+  const partyId = param(c, "partyId");
   const { question, eventType, options, basePoints } = await c.req.json();
 
   if (!question?.trim()) {
@@ -55,13 +55,13 @@ app.post("/:academyId/bonus", hostGuard, async (c) => {
     resolvedAt: null,
   };
 
-  await createBonusEvent(academyId, event);
+  await createBonusEvent(partyId, event);
   return c.json(event, 201);
 });
 
 // Resolve bonus event (host only)
-app.patch("/:academyId/bonus/:eventId", hostGuard, async (c) => {
-  const academyId = param(c, "academyId");
+app.patch("/:partyId/bonus/:eventId", hostGuard, async (c) => {
+  const partyId = param(c, "partyId");
   const eventId = param(c, "eventId");
   const { correctAnswer } = await c.req.json();
 
@@ -69,14 +69,14 @@ app.patch("/:academyId/bonus/:eventId", hostGuard, async (c) => {
     return c.json({ error: "correctAnswer is required" }, 400);
   }
 
-  await resolveBonusEvent(academyId, eventId, correctAnswer);
+  await resolveBonusEvent(partyId, eventId, correctAnswer);
   return c.json({ status: "resolved", correctAnswer });
 });
 
 // Place wager
-app.post("/:academyId/bonus/:eventId/wager", memberGuard, async (c) => {
+app.post("/:partyId/bonus/:eventId/wager", memberGuard, async (c) => {
   const { userId } = getUser(c);
-  const academyId = param(c, "academyId");
+  const partyId = param(c, "partyId");
   const eventId = param(c, "eventId");
   const { prediction, wagerAmount } = await c.req.json();
 
@@ -94,7 +94,7 @@ app.post("/:academyId/bonus/:eventId/wager", memberGuard, async (c) => {
     createdAt: new Date().toISOString(),
   };
 
-  await placeWager(academyId, wager);
+  await placeWager(partyId, wager);
   return c.json(wager);
 });
 

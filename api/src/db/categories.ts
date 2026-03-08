@@ -7,13 +7,15 @@ import {
 import { db, TABLE_NAME } from "./client.js";
 import type { Category, Nominee } from "../types/index.js";
 
+const EVENT_PK = "EVENT#oscars_2026";
+
 export async function getCategories(): Promise<Category[]> {
   const result = await db.send(
     new QueryCommand({
       TableName: TABLE_NAME,
       KeyConditionExpression: "PK = :pk AND begins_with(SK, :sk)",
       ExpressionAttributeValues: {
-        ":pk": "YEAR#2026",
+        ":pk": EVENT_PK,
         ":sk": "CATEGORY#",
       },
     })
@@ -28,7 +30,7 @@ export async function getCategory(
   const result = await db.send(
     new GetCommand({
       TableName: TABLE_NAME,
-      Key: { PK: "YEAR#2026", SK: `CATEGORY#${categoryId}` },
+      Key: { PK: EVENT_PK, SK: `CATEGORY#${categoryId}` },
     })
   );
   return (result.Item as Category) || null;
@@ -56,7 +58,7 @@ export async function setWinner(
   await db.send(
     new UpdateCommand({
       TableName: TABLE_NAME,
-      Key: { PK: "YEAR#2026", SK: `CATEGORY#${categoryId}` },
+      Key: { PK: EVENT_PK, SK: `CATEGORY#${categoryId}` },
       UpdateExpression:
         "SET winnerId = :winnerId, resolvedAt = :resolvedAt",
       ExpressionAttributeValues: {
@@ -71,7 +73,7 @@ export async function clearWinner(categoryId: string): Promise<void> {
   await db.send(
     new UpdateCommand({
       TableName: TABLE_NAME,
-      Key: { PK: "YEAR#2026", SK: `CATEGORY#${categoryId}` },
+      Key: { PK: EVENT_PK, SK: `CATEGORY#${categoryId}` },
       UpdateExpression:
         "SET winnerId = :null, resolvedAt = :null, locked = :locked",
       ExpressionAttributeValues: {
@@ -89,7 +91,7 @@ export async function setCategoryLocked(
   await db.send(
     new UpdateCommand({
       TableName: TABLE_NAME,
-      Key: { PK: "YEAR#2026", SK: `CATEGORY#${categoryId}` },
+      Key: { PK: EVENT_PK, SK: `CATEGORY#${categoryId}` },
       UpdateExpression: "SET locked = :locked",
       ExpressionAttributeValues: { ":locked": locked },
     })
@@ -101,7 +103,7 @@ export async function putCategory(category: Category): Promise<void> {
     new PutCommand({
       TableName: TABLE_NAME,
       Item: {
-        PK: "YEAR#2026",
+        PK: EVENT_PK,
         SK: `CATEGORY#${category.categoryId}`,
         ...category,
       },

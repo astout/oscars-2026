@@ -2,15 +2,15 @@ import { PutCommand, QueryCommand } from "@aws-sdk/lib-dynamodb";
 import { db, TABLE_NAME } from "./client.js";
 import type { Pick } from "../types/index.js";
 
-export async function setPick(academyId: string, pick: Pick): Promise<void> {
+export async function setPick(partyId: string, pick: Pick): Promise<void> {
   await db.send(
     new PutCommand({
       TableName: TABLE_NAME,
       Item: {
-        PK: `ACADEMY#${academyId}`,
+        PK: `PARTY#${partyId}`,
         SK: `PICK#${pick.userId}#${pick.categoryId}`,
         GSI1PK: `USER#${pick.userId}`,
-        GSI1SK: `PICK#${academyId}#${pick.categoryId}`,
+        GSI1SK: `PICK#${partyId}#${pick.categoryId}`,
         ...pick,
       },
     })
@@ -18,7 +18,7 @@ export async function setPick(academyId: string, pick: Pick): Promise<void> {
 }
 
 export async function getUserPicks(
-  academyId: string,
+  partyId: string,
   userId: string
 ): Promise<Pick[]> {
   const result = await db.send(
@@ -26,7 +26,7 @@ export async function getUserPicks(
       TableName: TABLE_NAME,
       KeyConditionExpression: "PK = :pk AND begins_with(SK, :sk)",
       ExpressionAttributeValues: {
-        ":pk": `ACADEMY#${academyId}`,
+        ":pk": `PARTY#${partyId}`,
         ":sk": `PICK#${userId}#`,
       },
     })
@@ -34,13 +34,13 @@ export async function getUserPicks(
   return (result.Items || []) as Pick[];
 }
 
-export async function getAllPicks(academyId: string): Promise<Pick[]> {
+export async function getAllPicks(partyId: string): Promise<Pick[]> {
   const result = await db.send(
     new QueryCommand({
       TableName: TABLE_NAME,
       KeyConditionExpression: "PK = :pk AND begins_with(SK, :sk)",
       ExpressionAttributeValues: {
-        ":pk": `ACADEMY#${academyId}`,
+        ":pk": `PARTY#${partyId}`,
         ":sk": "PICK#",
       },
     })

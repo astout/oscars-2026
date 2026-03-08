@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, Plus } from "@phosphor-icons/react";
 import { api } from "../api/client.js";
-import type { Academy } from "../types/academy.js";
+import type { Party } from "../types/party.js";
 
 export default function CreateWatchParty() {
   const navigate = useNavigate();
@@ -19,7 +19,7 @@ export default function CreateWatchParty() {
     setError("");
 
     try {
-      await api.post<Academy>("/academies", { name: trimmed, displayName: trimmed });
+      await api.post<Party>("/parties", { name: trimmed });
       navigate("/");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to create party");

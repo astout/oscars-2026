@@ -1,9 +1,9 @@
 import { useLocation, useNavigate } from "react-router-dom";
-import { Trophy, ChartBar, Sparkle, GearSix } from "@phosphor-icons/react";
+import { FilmSlate, ChartBar, Sparkle, GearSix } from "@phosphor-icons/react";
 import type { Icon } from "@phosphor-icons/react";
 
 interface BottomNavProps {
-  academyId: string;
+  partyId: string;
 }
 
 interface TabDef {
@@ -13,16 +13,16 @@ interface TabDef {
 }
 
 const tabs: TabDef[] = [
-  { label: "Categories", path: "categories", icon: Trophy },
+  { label: "Categories", path: "categories", icon: FilmSlate },
   { label: "Leaderboard", path: "leaderboard", icon: ChartBar },
   { label: "Bonus", path: "bonus", icon: Sparkle },
   { label: "Settings", path: "settings", icon: GearSix },
 ];
 
-export default function BottomNav({ academyId }: BottomNavProps) {
+export default function BottomNav({ partyId }: BottomNavProps) {
   const location = useLocation();
   const navigate = useNavigate();
-  const basePath = `/party/${academyId}`;
+  const basePath = `/party/${partyId}`;
 
   return (
     <nav className="bottom-nav">

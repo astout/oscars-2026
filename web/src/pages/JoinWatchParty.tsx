@@ -29,8 +29,8 @@ export default function JoinWatchParty() {
     setError("");
 
     try {
-      await api.get<{ status: string; academyId: string }>(
-        `/academies/${trimmedParty}/join/${trimmedCode}`
+      await api.get<{ status: string; partyId: string }>(
+        `/parties/${trimmedParty}/join/${trimmedCode}`
       );
       setSuccess(true);
     } catch (err) {
@@ -81,65 +81,24 @@ export default function JoinWatchParty() {
       <div className="page-content" style={{ maxWidth: 480 }}>
         <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "var(--space-4)" }}>
           <div>
-            <label
-              htmlFor="party-id"
-              style={{
-                display: "block",
-                fontSize: "var(--text-sm)",
-                fontWeight: "var(--weight-medium)",
-                color: "var(--text-secondary)",
-                marginBottom: "var(--space-2)",
-              }}
-            >
+            <label htmlFor="party-id" style={{ display: "block", fontSize: "var(--text-sm)", fontWeight: "var(--weight-medium)", color: "var(--text-secondary)", marginBottom: "var(--space-2)" }}>
               Party ID
             </label>
-            <input
-              id="party-id"
-              type="text"
-              className="input"
-              placeholder="Party ID from invite link"
-              value={partyId}
-              onChange={(e) => setPartyId(e.target.value)}
-              required
-              autoComplete="off"
-            />
+            <input id="party-id" type="text" className="input" placeholder="Party ID from invite link" value={partyId} onChange={(e) => setPartyId(e.target.value)} required autoComplete="off" />
           </div>
 
           <div>
-            <label
-              htmlFor="invite-code"
-              style={{
-                display: "block",
-                fontSize: "var(--text-sm)",
-                fontWeight: "var(--weight-medium)",
-                color: "var(--text-secondary)",
-                marginBottom: "var(--space-2)",
-              }}
-            >
+            <label htmlFor="invite-code" style={{ display: "block", fontSize: "var(--text-sm)", fontWeight: "var(--weight-medium)", color: "var(--text-secondary)", marginBottom: "var(--space-2)" }}>
               Invite Code
             </label>
-            <input
-              id="invite-code"
-              type="text"
-              className="input"
-              placeholder="Enter your invite code"
-              value={code}
-              onChange={(e) => setCode(e.target.value)}
-              required
-              autoFocus={!searchParams.get("code")}
-              autoComplete="off"
-            />
+            <input id="invite-code" type="text" className="input" placeholder="Enter your invite code" value={code} onChange={(e) => setCode(e.target.value)} required autoFocus={!searchParams.get("code")} autoComplete="off" />
           </div>
 
           {error && (
             <p style={{ color: "var(--status-wrong)", fontSize: "var(--text-sm)" }}>{error}</p>
           )}
 
-          <button
-            type="submit"
-            className="btn btn-primary btn-full"
-            disabled={loading || !code.trim() || !partyId.trim()}
-          >
+          <button type="submit" className="btn btn-primary btn-full" disabled={loading || !code.trim() || !partyId.trim()}>
             <Ticket size={18} weight="bold" />
             {loading ? "Joining..." : "Join Watch Party"}
           </button>

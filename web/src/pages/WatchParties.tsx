@@ -2,18 +2,18 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Users, Plus, UserPlus, Crown, UserCircle } from "@phosphor-icons/react";
 import { api } from "../api/client.js";
-import type { Academy } from "../types/academy.js";
+import type { Party } from "../types/party.js";
 import OscarStatuette from "../components/OscarStatuette.js";
 
 export default function WatchParties() {
   const navigate = useNavigate();
-  const [parties, setParties] = useState<Academy[]>([]);
+  const [parties, setParties] = useState<Party[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
   useEffect(() => {
     api
-      .get<Academy[]>("/academies")
+      .get<Party[]>("/parties")
       .then(setParties)
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
@@ -103,9 +103,9 @@ export default function WatchParties() {
         <div className="stagger-children" style={{ display: "flex", flexDirection: "column", gap: "var(--space-3)" }}>
           {parties.map((party) => (
             <div
-              key={party.academyId}
+              key={party.partyId}
               className="card card-interactive tap-target"
-              onClick={() => navigate(`/party/${party.academyId}`)}
+              onClick={() => navigate(`/party/${party.partyId}`)}
               style={{ display: "flex", alignItems: "center", gap: "var(--space-4)" }}
             >
               <div

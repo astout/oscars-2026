@@ -63,7 +63,7 @@ export default function CategoryCard({ category, pick, onSelect }: CategoryCardP
         <span className="category-label">{category.name}</span>
         {resolved ? (
           <span className="badge badge-resolved">
-            <Trophy size={12} weight="fill" /> Resolved
+            <Trophy size={12} weight="fill" /> Awarded
           </span>
         ) : locked ? (
           <span className="badge badge-locked">
