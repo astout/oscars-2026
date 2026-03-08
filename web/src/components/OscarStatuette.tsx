@@ -7,7 +7,7 @@ interface OscarStatuetteProps {
 export default function OscarStatuette({ size = 24, className, style }: OscarStatuetteProps) {
   return (
     <img
-      src="/oscar-statue.png"
+      src="/academy-awards-logo.png"
       alt=""
       aria-hidden="true"
       className={className}

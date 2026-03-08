@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { useAuthContext } from "../auth/AuthContext.js";
 import { Navigate } from "react-router-dom";
-import OscarStatuette from "../components/OscarStatuette.js";
 
 type AuthView = "sign-in" | "sign-up" | "confirm" | "forgot" | "reset";
 
@@ -74,186 +73,167 @@ export default function Auth() {
   };
 
   return (
-    <div style={styles.container}>
-      <div style={styles.card}>
-        <div style={{ display: "flex", justifyContent: "center", marginBottom: "var(--space-4)" }}>
-          <OscarStatuette size={120} />
-        </div>
-        <h1 style={styles.title}>Oscars 2026</h1>
-        <p style={styles.subtitle}>98th Academy Awards</p>
+    <div style={styles.page}>
+      <div style={styles.container}>
+        <div style={styles.card}>
+          <div style={styles.logoWrap}>
+            <img src="/academy-awards-logo.png" alt="98th Academy Awards" style={styles.logo} />
+          </div>
 
-        <form onSubmit={handleSubmit} style={styles.form}>
-          {view === "sign-up" && (
-            <input
-              type="text"
-              placeholder="Display name"
-              value={displayName}
-              onChange={(e) => setDisplayName(e.target.value)}
-              style={styles.input}
-              required
-              autoComplete="name"
-            />
-          )}
-
-          {view !== "confirm" && view !== "reset" && (
-            <>
+          <form onSubmit={handleSubmit} style={styles.form}>
+            {view === "sign-up" && (
               <input
-                type="email"
-                placeholder="Email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                style={styles.input}
+                type="text"
+                placeholder="Display name"
+                value={displayName}
+                onChange={(e) => setDisplayName(e.target.value)}
+                className="input"
                 required
-                autoComplete="email"
+                autoComplete="name"
               />
-              {view !== "forgot" && (
+            )}
+
+            {view !== "confirm" && view !== "reset" && (
+              <>
                 <input
-                  type="password"
-                  placeholder="Password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  style={styles.input}
+                  type="email"
+                  placeholder="Email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="input"
                   required
-                  minLength={8}
-                  autoComplete={view === "sign-up" ? "new-password" : "current-password"}
+                  autoComplete="email"
                 />
-              )}
-            </>
-          )}
+                {view !== "forgot" && (
+                  <input
+                    type="password"
+                    placeholder="Password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="input"
+                    required
+                    minLength={8}
+                    autoComplete={view === "sign-up" ? "new-password" : "current-password"}
+                  />
+                )}
+              </>
+            )}
 
-          {(view === "confirm" || view === "reset") && (
-            <input
-              type="text"
-              placeholder="Verification code"
-              value={code}
-              onChange={(e) => setCode(e.target.value)}
-              style={styles.input}
-              required
-              autoComplete="one-time-code"
-            />
-          )}
+            {(view === "confirm" || view === "reset") && (
+              <input
+                type="text"
+                placeholder="Verification code"
+                value={code}
+                onChange={(e) => setCode(e.target.value)}
+                className="input"
+                required
+                autoComplete="one-time-code"
+              />
+            )}
 
-          {view === "reset" && (
-            <input
-              type="password"
-              placeholder="New password"
-              value={newPassword}
-              onChange={(e) => setNewPassword(e.target.value)}
-              style={styles.input}
-              required
-              minLength={8}
-              autoComplete="new-password"
-            />
-          )}
+            {view === "reset" && (
+              <input
+                type="password"
+                placeholder="New password"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                className="input"
+                required
+                minLength={8}
+                autoComplete="new-password"
+              />
+            )}
 
-          <button type="submit" style={styles.button} disabled={loading}>
-            {loading
-              ? "..."
-              : {
-                  "sign-in": "Sign In",
-                  "sign-up": "Create Account",
-                  confirm: "Verify",
-                  forgot: "Send Reset Code",
-                  reset: "Reset Password",
-                }[view]}
-          </button>
-        </form>
+            <button type="submit" className="btn btn-primary btn-full" disabled={loading} style={{ marginTop: "var(--space-2)" }}>
+              {loading
+                ? "..."
+                : {
+                    "sign-in": "Sign In",
+                    "sign-up": "Create Account",
+                    confirm: "Verify",
+                    forgot: "Send Reset Code",
+                    reset: "Reset Password",
+                  }[view]}
+            </button>
+          </form>
 
-        {auth.error && <p style={styles.error}>{auth.error}</p>}
-        {message && <p style={styles.message}>{message}</p>}
+          {auth.error && <p style={styles.error}>{auth.error}</p>}
+          {message && <p style={styles.message}>{message}</p>}
 
-        <div style={styles.links}>
-          {view === "sign-in" && (
-            <>
-              <button style={styles.link} onClick={() => setView("sign-up")}>
-                Create account
+          <div style={styles.links}>
+            {view === "sign-in" && (
+              <>
+                <button style={styles.link} onClick={() => setView("sign-up")}>
+                  Create account
+                </button>
+                <button style={styles.link} onClick={() => setView("forgot")}>
+                  Forgot password?
+                </button>
+              </>
+            )}
+            {view === "sign-up" && (
+              <button style={styles.link} onClick={() => setView("sign-in")}>
+                Already have an account? Sign in
               </button>
-              <button style={styles.link} onClick={() => setView("forgot")}>
-                Forgot password?
+            )}
+            {view === "confirm" && (
+              <button style={styles.link} onClick={resendCode}>
+                Resend code
               </button>
-            </>
-          )}
-          {view === "sign-up" && (
-            <button style={styles.link} onClick={() => setView("sign-in")}>
-              Already have an account? Sign in
-            </button>
-          )}
-          {view === "confirm" && (
-            <button style={styles.link} onClick={resendCode}>
-              Resend code
-            </button>
-          )}
-          {(view === "forgot" || view === "reset" || view === "confirm") && (
-            <button style={styles.link} onClick={() => setView("sign-in")}>
-              Back to sign in
-            </button>
-          )}
+            )}
+            {(view === "forgot" || view === "reset" || view === "confirm") && (
+              <button style={styles.link} onClick={() => setView("sign-in")}>
+                Back to sign in
+              </button>
+            )}
+          </div>
         </div>
       </div>
+
+      <footer style={styles.footer}>
+        <span style={styles.footerText}>2026</span>
+        <span style={styles.footerDivider} />
+        <span style={styles.footerText}>alexhacks.life</span>
+      </footer>
     </div>
   );
 }
 
 const styles: Record<string, React.CSSProperties> = {
+  page: {
+    display: "flex",
+    flexDirection: "column",
+    minHeight: "100dvh",
+  },
   container: {
+    flex: 1,
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    minHeight: "100dvh",
     padding: "var(--space-4)",
   },
   card: {
     width: "100%",
-    maxWidth: 380,
+    maxWidth: 400,
     background: "var(--surface-raised)",
     border: "0.5px solid var(--border)",
     borderRadius: "var(--radius-lg)",
-    padding: "var(--space-8)",
+    padding: "var(--space-8) var(--space-6)",
   },
-  title: {
-    fontSize: "var(--text-2xl)",
-    fontWeight: "var(--weight-light)",
-    letterSpacing: "var(--tracking-tight)",
-    color: "var(--gold)",
-    textAlign: "center" as const,
-    marginBottom: "var(--space-1)",
+  logoWrap: {
+    display: "flex",
+    justifyContent: "center",
+    marginBottom: "var(--space-6)",
   },
-  subtitle: {
-    fontSize: "var(--text-sm)",
-    color: "var(--text-muted)",
-    textAlign: "center" as const,
-    marginBottom: "var(--space-8)",
-    letterSpacing: "var(--tracking-wide)",
-    textTransform: "uppercase" as const,
+  logo: {
+    width: 180,
+    height: 180,
+    objectFit: "contain",
   },
   form: {
     display: "flex",
     flexDirection: "column" as const,
     gap: "var(--space-3)",
-  },
-  input: {
-    background: "var(--surface-sunken)",
-    border: "0.5px solid var(--border)",
-    borderRadius: "var(--radius-md)",
-    padding: "var(--space-3) var(--space-4)",
-    color: "var(--text-primary)",
-    fontSize: "var(--text-base)",
-    fontFamily: "var(--font-body)",
-    outline: "none",
-    transition: "border-color 150ms",
-  },
-  button: {
-    background: "var(--gold)",
-    color: "var(--text-on-gold)",
-    border: "none",
-    borderRadius: "var(--radius-md)",
-    padding: "var(--space-3) var(--space-4)",
-    fontSize: "var(--text-base)",
-    fontWeight: "var(--weight-medium)",
-    fontFamily: "var(--font-body)",
-    cursor: "pointer",
-    marginTop: "var(--space-2)",
-    minHeight: 44,
   },
   error: {
     color: "var(--status-wrong)",
@@ -282,5 +262,22 @@ const styles: Record<string, React.CSSProperties> = {
     cursor: "pointer",
     padding: "var(--space-1)",
     fontFamily: "var(--font-body)",
+  },
+  footer: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: "var(--space-3)",
+    padding: "var(--space-6) var(--space-4)",
+    borderTop: "0.5px solid var(--border-subtle)",
+  },
+  footerText: {
+    fontSize: "var(--text-sm)",
+    color: "var(--text-muted)",
+  },
+  footerDivider: {
+    width: 1,
+    height: 14,
+    background: "var(--border)",
   },
 };
