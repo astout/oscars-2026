@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { Crown, Copy, Check, Users, Link, X, UserPlus, Lock, LockOpen, DoorOpen, PencilSimple, Sparkle } from "@phosphor-icons/react";
+import { Crown, Copy, Check, Users, Link, X, UserPlus, Lock, LockOpen, DoorOpen, PencilSimple, Sparkle, Trash } from "@phosphor-icons/react";
 import { api } from "../api/client.js";
 import { useAuthContext } from "../auth/AuthContext.js";
 import type { Party, PartyMember } from "../types/party.js";
@@ -20,6 +20,7 @@ export default function WatchPartyDetail() {
   const [editingName, setEditingName] = useState(false);
   const [partyName, setPartyName] = useState("");
   const [confirmRemove, setConfirmRemove] = useState<string | null>(null);
+  const [confirmDeleteParty, setConfirmDeleteParty] = useState(false);
 
   const fetchData = useCallback(async () => {
     if (!partyId) return;
@@ -305,7 +306,7 @@ export default function WatchPartyDetail() {
           </div>
         </div>
 
-        {/* Leave Party */}
+        {/* Leave Party (non-host) */}
         {!isHost && (
           <div style={{ marginTop: "var(--space-8)", paddingTop: "var(--space-6)", borderTop: "0.5px solid var(--border-subtle)" }}>
             {!confirmLeave ? (
@@ -342,6 +343,50 @@ export default function WatchPartyDetail() {
                     style={{ flex: 1 }}
                   >
                     Leave
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Delete Party (host) */}
+        {isHost && (
+          <div style={{ marginTop: "var(--space-8)", paddingTop: "var(--space-6)", borderTop: "0.5px solid var(--border-subtle)" }}>
+            {!confirmDeleteParty ? (
+              <button
+                className="btn btn-ghost btn-full"
+                onClick={() => setConfirmDeleteParty(true)}
+                style={{ color: "var(--status-wrong)", gap: "var(--space-2)" }}
+              >
+                <Trash size={18} weight="bold" />
+                Delete Party
+              </button>
+            ) : (
+              <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-3)", alignItems: "center" }}>
+                <p style={{ fontSize: "var(--text-sm)", color: "var(--status-wrong)", textAlign: "center", fontWeight: "var(--weight-medium)" }}>
+                  This will permanently delete the party and all data.
+                </p>
+                <div className="confirm-actions" style={{ width: "100%" }}>
+                  <button className="btn btn-ghost" onClick={() => setConfirmDeleteParty(false)} style={{ flex: 1 }}>Cancel</button>
+                  <button
+                    className="btn btn-danger"
+                    onClick={async () => {
+                      setActionLoading("delete");
+                      try {
+                        await api.delete(`/parties/${partyId}`);
+                        navigate("/");
+                      } catch (err) {
+                        setError(err instanceof Error ? err.message : "Failed to delete party");
+                        setConfirmDeleteParty(false);
+                      } finally {
+                        setActionLoading(null);
+                      }
+                    }}
+                    disabled={actionLoading === "delete"}
+                    style={{ flex: 1 }}
+                  >
+                    Delete
                   </button>
                 </div>
               </div>

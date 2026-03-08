@@ -11,9 +11,11 @@ import {
   removeMember,
   setAllLocked,
   renameParty,
+  deleteParty,
 } from "../db/parties.js";
 import { getUser } from "../middleware/auth.js";
 import { ensureUser, getUser as getUserProfile } from "../db/users.js";
+import { isEmcee } from "../db/events.js";
 import { memberGuard, hostGuard } from "../middleware/party-access.js";
 import { param } from "../middleware/params.js";
 import type { Party } from "../types/index.js";
@@ -165,6 +167,25 @@ app.patch("/:partyId", hostGuard, async (c) => {
 
   await renameParty(partyId, name.trim());
   return c.json({ name: name.trim() });
+});
+
+// Delete party (host or emcee)
+app.delete("/:partyId", async (c) => {
+  const { userId } = getUser(c);
+  const partyId = param(c, "partyId");
+
+  const party = await getParty(partyId);
+  if (!party) return c.json({ error: "Not found" }, 404);
+
+  const isHost = party.hostUserId === userId;
+  const isAdmin = await isEmcee("oscars_2026", userId);
+
+  if (!isHost && !isAdmin) {
+    return c.json({ error: "Host or emcee access required" }, 403);
+  }
+
+  await deleteParty(partyId);
+  return c.json({ deleted: true });
 });
 
 // Lock/unlock all

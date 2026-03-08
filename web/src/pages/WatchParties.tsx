@@ -108,7 +108,7 @@ export default function WatchParties() {
       <footer style={styles.footer}>
         <span style={styles.footerText}>2026</span>
         <span style={styles.footerDivider} />
-        <span style={styles.footerText}>alexhacks.life</span>
+        <img src="/alexhacks-logo.png" alt="alexhacks" style={styles.footerLogo} />
       </footer>
     </div>
   );
@@ -236,5 +236,11 @@ const styles: Record<string, React.CSSProperties> = {
     width: 1,
     height: 14,
     background: "var(--border)",
+  },
+  footerLogo: {
+    height: 14,
+    width: "auto",
+    objectFit: "contain" as const,
+    opacity: 0.5,
   },
 };

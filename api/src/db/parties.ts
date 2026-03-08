@@ -176,6 +176,36 @@ export async function setAllLocked(
   );
 }
 
+export async function deleteParty(partyId: string): Promise<void> {
+  // Query all items under this party PK
+  const result = await db.send(
+    new QueryCommand({
+      TableName: TABLE_NAME,
+      KeyConditionExpression: "PK = :pk",
+      ExpressionAttributeValues: { ":pk": `PARTY#${partyId}` },
+      ProjectionExpression: "PK, SK",
+    })
+  );
+
+  const items = result.Items || [];
+  if (items.length === 0) return;
+
+  // Delete in batches of 25 (DynamoDB BatchWrite limit)
+  const { BatchWriteCommand } = await import("@aws-sdk/lib-dynamodb");
+  for (let i = 0; i < items.length; i += 25) {
+    const batch = items.slice(i, i + 25);
+    await db.send(
+      new BatchWriteCommand({
+        RequestItems: {
+          [TABLE_NAME]: batch.map((item) => ({
+            DeleteRequest: { Key: { PK: item.PK, SK: item.SK } },
+          })),
+        },
+      })
+    );
+  }
+}
+
 export async function renameParty(
   partyId: string,
   name: string
