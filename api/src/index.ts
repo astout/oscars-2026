@@ -7,6 +7,7 @@ import picks from "./routes/picks.js";
 import bonus from "./routes/bonus.js";
 import leaderboard from "./routes/leaderboard.js";
 import admin from "./routes/admin.js";
+import events from "./routes/events.js";
 import users from "./routes/users.js";
 
 const app = new Hono();
@@ -25,6 +26,7 @@ app.route("/api/v1/parties", picks);
 app.route("/api/v1/parties", bonus);
 app.route("/api/v1/parties", leaderboard);
 app.route("/api/v1/parties", admin);
+app.route("/api/v1/events", events);
 
 export const handler = handle(app);
 export default app;

@@ -1,4 +1,4 @@
-import { GetCommand, PutCommand, UpdateCommand } from "@aws-sdk/lib-dynamodb";
+import { GetCommand, PutCommand, QueryCommand, UpdateCommand } from "@aws-sdk/lib-dynamodb";
 import { db, TABLE_NAME } from "./client.js";
 import type { User } from "../types/index.js";
 
@@ -40,6 +40,23 @@ export async function ensureUser(
   );
 
   return user;
+}
+
+export async function getUserByEmail(email: string): Promise<User | null> {
+  const { ScanCommand } = await import("@aws-sdk/lib-dynamodb");
+  const result = await db.send(
+    new ScanCommand({
+      TableName: TABLE_NAME,
+      FilterExpression: "begins_with(PK, :prefix) AND SK = :sk AND email = :email",
+      ExpressionAttributeValues: {
+        ":prefix": "USER#",
+        ":sk": "METADATA",
+        ":email": email.toLowerCase(),
+      },
+      Limit: 100,
+    })
+  );
+  return (result.Items?.[0] as User) || null;
 }
 
 export async function updateDisplayName(

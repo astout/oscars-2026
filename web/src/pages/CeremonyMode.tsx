@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import {
   Lock,
   LockOpen,
@@ -7,6 +7,7 @@ import {
   Check,
   CaretDown,
   CaretUp,
+  Crown,
 } from "@phosphor-icons/react";
 import { api } from "../api/client.js";
 import OscarStatuette from "../components/OscarStatuette.js";
@@ -37,6 +38,7 @@ interface PartyInfo {
 
 export default function CeremonyMode() {
   const { partyId } = useParams<{ partyId: string }>();
+  const navigate = useNavigate();
   const [categories, setCategories] = useState<Category[]>([]);
   const [party, setParty] = useState<PartyInfo | null>(null);
   const [loading, setLoading] = useState(true);
@@ -169,6 +171,15 @@ export default function CeremonyMode() {
             </div>
           </div>
         )}
+
+        <button
+          className="btn btn-secondary btn-full"
+          onClick={() => navigate(`/party/${partyId}/ceremony/emcees`)}
+          style={{ marginBottom: "var(--space-4)" }}
+        >
+          <Crown size={18} weight="bold" style={{ color: "var(--gold)" }} />
+          Manage Emcees
+        </button>
 
         {loading ? (
           <div style={styles.list}>

@@ -1,4 +1,5 @@
 import {
+  DeleteCommand,
   PutCommand,
   QueryCommand,
   UpdateCommand,
@@ -58,6 +59,84 @@ export async function resolveBonusEvent(
         ":status": "resolved",
         ":resolvedAt": new Date().toISOString(),
       },
+    })
+  );
+}
+
+export async function updateBonusEvent(
+  partyId: string,
+  eventId: string,
+  updates: { question?: string; options?: string[]; basePoints?: number }
+): Promise<void> {
+  const parts: string[] = [];
+  const names: Record<string, string> = {};
+  const values: Record<string, unknown> = {};
+
+  if (updates.question !== undefined) {
+    parts.push("question = :question");
+    values[":question"] = updates.question;
+  }
+  if (updates.options !== undefined) {
+    parts.push("#opts = :options");
+    names["#opts"] = "options";
+    values[":options"] = updates.options;
+  }
+  if (updates.basePoints !== undefined) {
+    parts.push("basePoints = :basePoints");
+    values[":basePoints"] = updates.basePoints;
+  }
+
+  if (parts.length === 0) return;
+
+  await db.send(
+    new UpdateCommand({
+      TableName: TABLE_NAME,
+      Key: { PK: `PARTY#${partyId}`, SK: `BONUS#${eventId}` },
+      UpdateExpression: `SET ${parts.join(", ")}`,
+      ...(Object.keys(names).length > 0 && { ExpressionAttributeNames: names }),
+      ExpressionAttributeValues: values,
+    })
+  );
+}
+
+export async function deleteBonusEvent(
+  partyId: string,
+  eventId: string
+): Promise<void> {
+  await db.send(
+    new DeleteCommand({
+      TableName: TABLE_NAME,
+      Key: { PK: `PARTY#${partyId}`, SK: `BONUS#${eventId}` },
+    })
+  );
+}
+
+export async function lockBonusEvent(
+  partyId: string,
+  eventId: string
+): Promise<void> {
+  await db.send(
+    new UpdateCommand({
+      TableName: TABLE_NAME,
+      Key: { PK: `PARTY#${partyId}`, SK: `BONUS#${eventId}` },
+      UpdateExpression: "SET #status = :status",
+      ExpressionAttributeNames: { "#status": "status" },
+      ExpressionAttributeValues: { ":status": "locked" },
+    })
+  );
+}
+
+export async function unlockBonusEvent(
+  partyId: string,
+  eventId: string
+): Promise<void> {
+  await db.send(
+    new UpdateCommand({
+      TableName: TABLE_NAME,
+      Key: { PK: `PARTY#${partyId}`, SK: `BONUS#${eventId}` },
+      UpdateExpression: "SET #status = :status",
+      ExpressionAttributeNames: { "#status": "status" },
+      ExpressionAttributeValues: { ":status": "open" },
     })
   );
 }

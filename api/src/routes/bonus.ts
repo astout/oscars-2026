@@ -4,9 +4,14 @@ import {
   createBonusEvent,
   getBonusEvents,
   resolveBonusEvent,
+  updateBonusEvent,
+  deleteBonusEvent,
+  lockBonusEvent,
+  unlockBonusEvent,
   placeWager,
   getUserWagers,
 } from "../db/bonus.js";
+import { getEvent } from "../db/events.js";
 import { getUser } from "../middleware/auth.js";
 import { memberGuard, hostGuard } from "../middleware/party-access.js";
 import { param } from "../middleware/params.js";
@@ -71,6 +76,84 @@ app.patch("/:partyId/bonus/:eventId", hostGuard, async (c) => {
 
   await resolveBonusEvent(partyId, eventId, correctAnswer);
   return c.json({ status: "resolved", correctAnswer });
+});
+
+// Update bonus event (host only)
+app.put("/:partyId/bonus/:eventId", hostGuard, async (c) => {
+  const partyId = param(c, "partyId");
+  const eventId = param(c, "eventId");
+  const { question, options, basePoints } = await c.req.json();
+
+  if (question !== undefined && !question?.trim()) {
+    return c.json({ error: "Question cannot be empty" }, 400);
+  }
+  if (options !== undefined && (!Array.isArray(options) || options.length < 2)) {
+    return c.json({ error: "At least 2 options required" }, 400);
+  }
+
+  await updateBonusEvent(partyId, eventId, {
+    ...(question !== undefined && { question: question.trim() }),
+    ...(options !== undefined && { options }),
+    ...(basePoints !== undefined && { basePoints }),
+  });
+
+  return c.json({ updated: true });
+});
+
+// Delete bonus event (host only)
+app.delete("/:partyId/bonus/:eventId", hostGuard, async (c) => {
+  const partyId = param(c, "partyId");
+  const eventId = param(c, "eventId");
+  await deleteBonusEvent(partyId, eventId);
+  return c.json({ deleted: true });
+});
+
+// Lock bonus event (host only)
+app.post("/:partyId/bonus/:eventId/lock", hostGuard, async (c) => {
+  const partyId = param(c, "partyId");
+  const eventId = param(c, "eventId");
+  await lockBonusEvent(partyId, eventId);
+  return c.json({ status: "locked" });
+});
+
+// Unlock bonus event (host only)
+app.post("/:partyId/bonus/:eventId/unlock", hostGuard, async (c) => {
+  const partyId = param(c, "partyId");
+  const eventId = param(c, "eventId");
+  await unlockBonusEvent(partyId, eventId);
+  return c.json({ status: "open" });
+});
+
+// Get template bonus suggestions for this party's event
+app.get("/:partyId/bonus/suggestions", hostGuard, async (c) => {
+  const partyId = param(c, "partyId");
+
+  const { getParty } = await import("../db/parties.js");
+  const partyData = await getParty(partyId);
+  if (!partyData) return c.json([]);
+
+  const event = await getEvent(partyData.eventId);
+  if (!event || event.templatePartyId === partyId) {
+    // This IS the template party, no suggestions
+    return c.json([]);
+  }
+
+  const templateBonuses = await getBonusEvents(event.templatePartyId);
+  const myBonuses = await getBonusEvents(partyId);
+  const myQuestions = new Set(myBonuses.map((b) => b.question.toLowerCase()));
+
+  // Return template bonuses the host hasn't already added
+  return c.json(
+    templateBonuses
+      .filter((b) => !myQuestions.has(b.question.toLowerCase()))
+      .map((b) => ({
+        eventId: b.eventId,
+        question: b.question,
+        eventType: b.eventType,
+        options: b.options,
+        basePoints: b.basePoints,
+      }))
+  );
 });
 
 // Place wager

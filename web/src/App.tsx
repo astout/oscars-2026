@@ -9,6 +9,8 @@ import Categories from "./pages/Categories.js";
 import Leaderboard from "./pages/Leaderboard.js";
 import BonusEvents from "./pages/BonusEvents.js";
 import CeremonyMode from "./pages/CeremonyMode.js";
+import EmceeSettings from "./pages/EmceeSettings.js";
+import ManageBonus from "./pages/ManageBonus.js";
 import Profile from "./pages/Profile.js";
 import PartyLayout from "./components/PartyLayout.js";
 
@@ -38,6 +40,8 @@ export default function App() {
         <Route path="bonus" element={<BonusEvents />} />
         <Route path="settings" element={<WatchPartyDetail />} />
         <Route path="ceremony" element={<CeremonyMode />} />
+        <Route path="ceremony/emcees" element={<EmceeSettings />} />
+        <Route path="bonus/manage" element={<ManageBonus />} />
       </Route>
 
       <Route path="*" element={<Navigate to="/" replace />} />

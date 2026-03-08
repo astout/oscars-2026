@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { Crown, Copy, Check, Users, Link, X, UserPlus, Lock, LockOpen, DoorOpen, PencilSimple } from "@phosphor-icons/react";
+import { Crown, Copy, Check, Users, Link, X, UserPlus, Lock, LockOpen, DoorOpen, PencilSimple, Sparkle } from "@phosphor-icons/react";
 import { api } from "../api/client.js";
 import { useAuthContext } from "../auth/AuthContext.js";
 import type { Party, PartyMember } from "../types/party.js";
@@ -200,6 +200,13 @@ export default function WatchPartyDetail() {
                 ) : (
                   <><Lock size={18} weight="bold" /> Lock All Picks</>
                 )}
+              </button>
+              <button
+                className="btn btn-secondary btn-full"
+                onClick={() => navigate(`/party/${partyId}/bonus/manage`)}
+              >
+                <Sparkle size={18} weight="bold" style={{ color: "var(--gold)" }} />
+                Manage Bonus Events
               </button>
               <button
                 className="btn btn-secondary btn-full"
