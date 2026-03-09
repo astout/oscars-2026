@@ -300,6 +300,36 @@
   animation: slideUp var(--duration-slow) var(--ease-out);
 }
 
+@media (min-width: 600px) {
+  .modal-content {
+    max-width: 760px;
+    margin: 0 auto;
+    border-radius: var(--radius-lg);
+    bottom: var(--space-6);
+  }
+}
+
+/* Nominee image grid — responsive columns */
+.nominee-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-3);
+  padding: 0 var(--space-2);
+}
+
+@media (min-width: 480px) {
+  .nominee-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (min-width: 800px) {
+  .nominee-grid {
+    grid-template-columns: repeat(4, 1fr);
+    gap: var(--space-2);
+  }
+}
+
 .modal-header {
   display: flex;
   align-items: center;

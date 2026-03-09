@@ -13,6 +13,7 @@ for (const cat of data.categories) {
     categoryId: cat.categoryId,
     name: cat.name,
     displayOrder: cat.displayOrder,
+    showImages: cat.showImages ?? false,
     winnerId: null,
     locked: false,
     resolvedAt: null,
@@ -28,6 +29,7 @@ for (const cat of data.categories) {
       categoryId: cat.categoryId,
       name: nom.name,
       subtitle: nom.subtitle,
+      imageUrl: nom.imageUrl,
       displayOrder: i + 1,
     };
     await putNominee(nominee);

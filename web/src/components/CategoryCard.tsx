@@ -5,6 +5,7 @@ interface Nominee {
   categoryId: string;
   name: string;
   subtitle?: string;
+  imageUrl?: string;
   displayOrder: number;
 }
 
@@ -20,6 +21,7 @@ interface Category {
   categoryId: string;
   name: string;
   displayOrder: number;
+  showImages: boolean;
   winnerId: string | null;
   locked: boolean;
   resolvedAt: string | null;
@@ -78,7 +80,11 @@ export default function CategoryCard({ category, pick, onSelect }: CategoryCardP
 
       {resolved && winner && (
         <div style={styles.winnerRow}>
-          <Trophy size={18} weight="fill" style={{ color: "var(--gold-vivid)" }} />
+          {category.showImages && winner.imageUrl ? (
+            <img src={winner.imageUrl} alt="" style={styles.thumb} />
+          ) : (
+            <Trophy size={18} weight="fill" style={{ color: "var(--gold-vivid)" }} />
+          )}
           <span style={styles.winnerName}>{winner.name}</span>
           {score !== null && (
             <span className="mono" style={{ ...styles.score, color: score > 0 ? "var(--status-correct)" : "var(--text-muted)" }}>
@@ -91,11 +97,17 @@ export default function CategoryCard({ category, pick, onSelect }: CategoryCardP
       {hasPicks && pick1Nominee && (
         <div style={styles.picks}>
           <div className="pick-indicator pick-1">
+            {category.showImages && pick1Nominee.imageUrl && (
+              <img src={pick1Nominee.imageUrl} alt="" style={styles.pickThumb} />
+            )}
             <span className="mono" style={styles.points}>+5</span>
             <span style={styles.pickName}>{pick1Nominee.name}</span>
           </div>
           {pick2Nominee && (
             <div className="pick-indicator pick-2">
+              {category.showImages && pick2Nominee.imageUrl && (
+                <img src={pick2Nominee.imageUrl} alt="" style={styles.pickThumb} />
+              )}
               <span className="mono" style={styles.points}>+3</span>
               <span style={styles.pickName}>{pick2Nominee.name}</span>
             </div>
@@ -185,5 +197,19 @@ const styles: Record<string, React.CSSProperties> = {
   score: {
     fontSize: "var(--text-md)",
     fontWeight: "var(--weight-semibold)",
+  },
+  thumb: {
+    width: 28,
+    height: 40,
+    objectFit: "cover" as const,
+    borderRadius: "var(--radius-sm)",
+    flexShrink: 0,
+  },
+  pickThumb: {
+    width: 22,
+    height: 32,
+    objectFit: "cover" as const,
+    borderRadius: 3,
+    flexShrink: 0,
   },
 };

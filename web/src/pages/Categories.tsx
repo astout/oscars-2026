@@ -11,6 +11,7 @@ interface Nominee {
   categoryId: string;
   name: string;
   subtitle?: string;
+  imageUrl?: string;
   displayOrder: number;
 }
 
@@ -18,6 +19,7 @@ interface Category {
   categoryId: string;
   name: string;
   displayOrder: number;
+  showImages: boolean;
   winnerId: string | null;
   locked: boolean;
   resolvedAt: string | null;

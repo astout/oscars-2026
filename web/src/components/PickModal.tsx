@@ -7,6 +7,7 @@ interface Nominee {
   categoryId: string;
   name: string;
   subtitle?: string;
+  imageUrl?: string;
   displayOrder: number;
 }
 
@@ -22,6 +23,7 @@ interface Category {
   categoryId: string;
   name: string;
   displayOrder: number;
+  showImages: boolean;
   winnerId: string | null;
   locked: boolean;
   resolvedAt: string | null;
@@ -44,6 +46,7 @@ export default function PickModal({ category, existingPick, partyId, onClose, on
 
   const nominees = [...category.nominees].sort((a, b) => a.displayOrder - b.displayOrder);
   const isLocked = category.locked;
+  const showImages = category.showImages;
 
   const handleNomineeClick = (nomineeId: string) => {
     if (isLocked) return;
@@ -109,7 +112,12 @@ export default function PickModal({ category, existingPick, partyId, onClose, on
           {pick1Nominee && (
             <div style={styles.selectedSection}>
               <div className="pick-indicator pick-1" style={styles.selectedRow}>
-                <Star size={16} weight="fill" style={{ color: "var(--pick-1)", flexShrink: 0 }} />
+                {showImages && pick1Nominee.imageUrl && (
+                  <img src={pick1Nominee.imageUrl} alt="" style={styles.selectedThumb} />
+                )}
+                {!(showImages && pick1Nominee.imageUrl) && (
+                  <Star size={16} weight="fill" style={{ color: "var(--pick-1)", flexShrink: 0 }} />
+                )}
                 <div style={styles.selectedInfo}>
                   <span style={styles.selectedLabel}>1st Pick</span>
                   <span style={styles.selectedName}>{pick1Nominee.name}</span>
@@ -125,7 +133,12 @@ export default function PickModal({ category, existingPick, partyId, onClose, on
 
               {pick2Nominee && (
                 <div className="pick-indicator pick-2" style={styles.selectedRow}>
-                  <Star size={16} weight="fill" style={{ color: "var(--pick-2)", flexShrink: 0 }} />
+                  {showImages && pick2Nominee.imageUrl && (
+                    <img src={pick2Nominee.imageUrl} alt="" style={styles.selectedThumb} />
+                  )}
+                  {!(showImages && pick2Nominee.imageUrl) && (
+                    <Star size={16} weight="fill" style={{ color: "var(--pick-2)", flexShrink: 0 }} />
+                  )}
                   <div style={styles.selectedInfo}>
                     <span style={styles.selectedLabel}>2nd Pick</span>
                     <span style={styles.selectedName}>{pick2Nominee.name}</span>
@@ -151,30 +164,60 @@ export default function PickModal({ category, existingPick, partyId, onClose, on
           )}
 
           {!isLocked && step < 3 && (
-            <div style={styles.nomineeList} className="stagger-children">
-              {(step === 1 ? nominees : availableNominees).map((nominee) => (
-                <button
-                  key={nominee.nomineeId}
-                  className="tap-target"
-                  style={styles.nomineeRow}
-                  onClick={() => handleNomineeClick(nominee.nomineeId)}
-                >
-                  <div style={styles.nomineeInfo}>
-                    <span style={styles.nomineeName}>{nominee.name}</span>
-                    {nominee.subtitle && <span style={styles.nomineeSub}>{nominee.subtitle}</span>}
-                  </div>
-                  <Check size={18} style={{ color: "var(--text-faint)" }} />
-                </button>
-              ))}
+            <div style={showImages ? undefined : styles.nomineeList} className={showImages ? "nominee-grid stagger-children" : "stagger-children"}>
+              {(step === 1 ? nominees : availableNominees).map((nominee) =>
+                showImages && nominee.imageUrl ? (
+                  <button
+                    key={nominee.nomineeId}
+                    className="tap-target"
+                    style={styles.nomineeCard}
+                    onClick={() => handleNomineeClick(nominee.nomineeId)}
+                  >
+                    <img src={nominee.imageUrl} alt={nominee.name} style={styles.nomineeImg} loading="lazy" />
+                    <div style={styles.nomineeCardInfo}>
+                      <span style={styles.nomineeCardName}>{nominee.name}</span>
+                      {nominee.subtitle && <span style={styles.nomineeSub}>{nominee.subtitle}</span>}
+                    </div>
+                  </button>
+                ) : (
+                  <button
+                    key={nominee.nomineeId}
+                    className="tap-target"
+                    style={styles.nomineeRow}
+                    onClick={() => handleNomineeClick(nominee.nomineeId)}
+                  >
+                    <div style={styles.nomineeInfo}>
+                      <span style={styles.nomineeName}>{nominee.name}</span>
+                      {nominee.subtitle && <span style={styles.nomineeSub}>{nominee.subtitle}</span>}
+                    </div>
+                    <Check size={18} style={{ color: "var(--text-faint)" }} />
+                  </button>
+                )
+              )}
             </div>
           )}
 
           {isLocked && (
-            <div style={styles.nomineeList}>
+            <div style={showImages ? undefined : styles.nomineeList} className={showImages ? "nominee-grid" : undefined}>
               {nominees.map((nominee) => {
                 const isPick1 = nominee.nomineeId === pick1;
                 const isPick2 = nominee.nomineeId === pick2;
-                return (
+                const pickBorder = isPick1
+                  ? { border: "2px solid var(--pick-1)", background: "var(--pick-1-glow)" }
+                  : isPick2
+                    ? { border: "2px solid var(--pick-2)", background: "var(--pick-2-glow)" }
+                    : {};
+                return showImages && nominee.imageUrl ? (
+                  <div key={nominee.nomineeId} style={{ ...styles.nomineeCard, cursor: "default", ...pickBorder }}>
+                    <img src={nominee.imageUrl} alt={nominee.name} style={styles.nomineeImg} loading="lazy" />
+                    <div style={styles.nomineeCardInfo}>
+                      <span style={styles.nomineeCardName}>{nominee.name}</span>
+                      {nominee.subtitle && <span style={styles.nomineeSub}>{nominee.subtitle}</span>}
+                      {isPick1 && <span className="mono" style={{ fontSize: "var(--text-xs)", color: "var(--pick-1)" }}>+5</span>}
+                      {isPick2 && <span className="mono" style={{ fontSize: "var(--text-xs)", color: "var(--pick-2)" }}>+3</span>}
+                    </div>
+                  </div>
+                ) : (
                   <div
                     key={nominee.nomineeId}
                     style={{
@@ -215,10 +258,11 @@ export default function PickModal({ category, existingPick, partyId, onClose, on
 }
 
 const styles: Record<string, React.CSSProperties> = {
-  body: { padding: "var(--space-4)", display: "flex", flexDirection: "column", gap: "var(--space-4)" },
+  body: { padding: "var(--space-4)", display: "flex", flexDirection: "column", gap: "var(--space-4)", overflowY: "auto" },
   lockedBanner: { display: "flex", alignItems: "center", gap: "var(--space-2)", padding: "var(--space-3) var(--space-4)", background: "rgba(229, 76, 53, 0.1)", borderRadius: "var(--radius-md)", color: "var(--status-locked)", fontSize: "var(--text-sm)", fontWeight: "var(--weight-medium)" },
   selectedSection: { display: "flex", flexDirection: "column", gap: "var(--space-2)" },
   selectedRow: { display: "flex", alignItems: "center", gap: "var(--space-3)" },
+  selectedThumb: { width: 40, height: 56, objectFit: "cover" as const, borderRadius: "var(--radius-sm)", flexShrink: 0 },
   selectedInfo: { flex: 1, display: "flex", flexDirection: "column", minWidth: 0 },
   selectedLabel: { fontSize: "var(--text-xs)", color: "var(--text-muted)", textTransform: "uppercase" as const, letterSpacing: "var(--tracking-wide)" },
   selectedName: { fontSize: "var(--text-base)", fontWeight: "var(--weight-medium)", color: "var(--text-primary)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" },
@@ -229,6 +273,10 @@ const styles: Record<string, React.CSSProperties> = {
   nomineeList: { display: "flex", flexDirection: "column", gap: "var(--space-1)" },
   nomineeRow: { display: "flex", alignItems: "center", justifyContent: "space-between", gap: "var(--space-3)", padding: "var(--space-3) var(--space-4)", background: "var(--surface-interactive)", border: "0.5px solid var(--border)", borderRadius: "var(--radius-md)", cursor: "pointer", fontFamily: "var(--font-body)", textAlign: "left" as const, width: "100%" },
   nomineeRowStatic: { display: "flex", alignItems: "center", justifyContent: "space-between", gap: "var(--space-3)", padding: "var(--space-3) var(--space-4)", background: "var(--surface-interactive)", borderRadius: "var(--radius-md)" },
+  nomineeCard: { display: "flex", flexDirection: "column" as const, background: "var(--surface-interactive)", border: "0.5px solid var(--border)", borderRadius: "var(--radius-md)", overflow: "hidden", cursor: "pointer", fontFamily: "var(--font-body)", textAlign: "left" as const },
+  nomineeImg: { width: "100%", aspectRatio: "2/3", objectFit: "cover" as const, display: "block" },
+  nomineeCardInfo: { padding: "var(--space-2)", display: "flex", flexDirection: "column" as const, gap: 2 },
+  nomineeCardName: { fontSize: "var(--text-sm)", fontWeight: "var(--weight-medium)", color: "var(--text-primary)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" },
   nomineeInfo: { flex: 1, display: "flex", flexDirection: "column", minWidth: 0 },
   nomineeName: { fontSize: "var(--text-base)", fontWeight: "var(--weight-medium)", color: "var(--text-primary)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" },
   nomineeSub: { fontSize: "var(--text-xs)", color: "var(--text-muted)" },
