@@ -42,19 +42,21 @@ app.get("/:partyId/bonus", memberGuard, async (c) => {
 // Create bonus event (host only)
 app.post("/:partyId/bonus", hostGuard, async (c) => {
   const partyId = param(c, "partyId");
-  const { question, eventType, options, basePoints } = await c.req.json();
+  const { question, options, maxWager } = await c.req.json();
 
   if (!question?.trim()) {
     return c.json({ error: "Question is required" }, 400);
+  }
+  if (!Array.isArray(options) || options.length < 2) {
+    return c.json({ error: "At least 2 options required" }, 400);
   }
 
   const event: BonusEvent = {
     eventId: randomUUID(),
     question: question.trim(),
-    eventType: eventType || "yes-no",
-    options: options || ["Yes", "No"],
+    options,
     correctAnswer: null,
-    basePoints: basePoints || 2,
+    maxWager: Math.min(Math.max(1, maxWager || 3), 7),
     status: "open",
     createdAt: new Date().toISOString(),
     resolvedAt: null,
@@ -82,7 +84,7 @@ app.patch("/:partyId/bonus/:eventId", hostGuard, async (c) => {
 app.put("/:partyId/bonus/:eventId", hostGuard, async (c) => {
   const partyId = param(c, "partyId");
   const eventId = param(c, "eventId");
-  const { question, options, basePoints } = await c.req.json();
+  const { question, options, maxWager } = await c.req.json();
 
   if (question !== undefined && !question?.trim()) {
     return c.json({ error: "Question cannot be empty" }, 400);
@@ -94,7 +96,7 @@ app.put("/:partyId/bonus/:eventId", hostGuard, async (c) => {
   await updateBonusEvent(partyId, eventId, {
     ...(question !== undefined && { question: question.trim() }),
     ...(options !== undefined && { options }),
-    ...(basePoints !== undefined && { basePoints }),
+    ...(maxWager !== undefined && { maxWager: Math.min(Math.max(1, maxWager), 7) }),
   });
 
   return c.json({ updated: true });
@@ -149,9 +151,8 @@ app.get("/:partyId/bonus/suggestions", hostGuard, async (c) => {
       .map((b) => ({
         eventId: b.eventId,
         question: b.question,
-        eventType: b.eventType,
         options: b.options,
-        basePoints: b.basePoints,
+        maxWager: b.maxWager,
       }))
   );
 });
@@ -167,7 +168,18 @@ app.post("/:partyId/bonus/:eventId/wager", memberGuard, async (c) => {
     return c.json({ error: "prediction is required" }, 400);
   }
 
-  const amount = Math.min(Math.max(0, wagerAmount || 0), 5);
+  // Fetch the event to get maxWager for validation
+  const events = await getBonusEvents(partyId);
+  const event = events.find((e) => e.eventId === eventId);
+  if (!event) {
+    return c.json({ error: "Bonus event not found" }, 404);
+  }
+  if (event.status !== "open") {
+    return c.json({ error: "Wagering is closed" }, 400);
+  }
+
+  const maxWager = event.maxWager || 7;
+  const amount = Math.min(Math.max(1, wagerAmount || 1), maxWager);
 
   const wager: Wager = {
     userId,

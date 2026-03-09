@@ -80,7 +80,7 @@ export default function Auth() {
             <img src="/academy-awards-logo.png" alt="98th Academy Awards" style={styles.logo} />
           </div>
 
-          <form onSubmit={handleSubmit} style={styles.form}>
+          <form onSubmit={handleSubmit} style={styles.form} autoComplete={view === "sign-in" ? "on" : undefined}>
             {view === "sign-up" && (
               <input
                 type="text"
@@ -96,17 +96,21 @@ export default function Auth() {
             {view !== "confirm" && view !== "reset" && (
               <>
                 <input
+                  key={`email-${view}`}
                   type="email"
+                  name="email"
                   placeholder="Email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="input"
                   required
-                  autoComplete="email"
+                  autoComplete={view === "sign-up" ? "email" : "username"}
                 />
                 {view !== "forgot" && (
                   <input
+                    key={`password-${view}`}
                     type="password"
+                    name="password"
                     placeholder="Password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}

@@ -15,7 +15,7 @@ interface TabDef {
 const tabs: TabDef[] = [
   { label: "Categories", path: "categories", icon: FilmSlate },
   { label: "Leaderboard", path: "leaderboard", icon: ChartBar },
-  { label: "Bonus", path: "bonus", icon: Sparkle },
+  { label: "Wagers", path: "bonus", icon: Sparkle },
   { label: "Settings", path: "settings", icon: GearSix },
 ];
 

@@ -16,10 +16,9 @@ interface Wager {
 interface BonusEvent {
   eventId: string;
   question: string;
-  eventType: "yes-no" | "multiple-choice";
   options: string[];
   correctAnswer: string | null;
-  basePoints: number;
+  maxWager: number;
   status: "open" | "locked" | "resolved";
   createdAt: string;
   resolvedAt: string | null;
@@ -36,7 +35,7 @@ export default function BonusEvents() {
     api
       .get<BonusEvent[]>(`/parties/${partyId}/bonus`)
       .then(setEvents)
-      .catch((err) => setError(err instanceof Error ? err.message : "Failed to load bonus events"))
+      .catch((err) => setError(err instanceof Error ? err.message : "Failed to load wagers"))
       .finally(() => setLoading(false));
   }, [partyId]);
 
@@ -56,7 +55,7 @@ export default function BonusEvents() {
   if (loading) {
     return (
       <div className="page">
-        <div className="page-header"><h1 className="page-title">Bonus Events</h1></div>
+        <div className="page-header"><h1 className="page-title">Wagers</h1></div>
         <div className="page-content">
           <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-3)" }}>
             {[1, 2, 3].map((i) => (
@@ -71,7 +70,7 @@ export default function BonusEvents() {
   if (error) {
     return (
       <div className="page">
-        <div className="page-header"><h1 className="page-title">Bonus Events</h1></div>
+        <div className="page-header"><h1 className="page-title">Wagers</h1></div>
         <div className="page-content">
           <p style={{ color: "var(--status-wrong)", fontSize: "var(--text-sm)", textAlign: "center" }}>{error}</p>
         </div>
@@ -82,12 +81,12 @@ export default function BonusEvents() {
   if (events.length === 0) {
     return (
       <div className="page animate-fade-in-up">
-        <div className="page-header"><h1 className="page-title">Bonus Events</h1></div>
+        <div className="page-header"><h1 className="page-title">Wagers</h1></div>
         <div className="page-content">
           <div className="empty-state">
             <Sparkle size={48} className="empty-state-icon" />
-            <p className="empty-state-title">No bonus events yet</p>
-            <p className="empty-state-text">Bonus bingo events will appear here when the host creates them.</p>
+            <p className="empty-state-title">No wagers yet</p>
+            <p className="empty-state-text">Wager questions will appear here when the host creates them.</p>
           </div>
         </div>
       </div>
@@ -100,8 +99,8 @@ export default function BonusEvents() {
         <OscarStatuette size={80} />
       </div>
       <div className="page-header">
-        <h1 className="page-title">Bonus Events</h1>
-        <p className="page-subtitle">{events.length} {events.length === 1 ? "event" : "events"}</p>
+        <h1 className="page-title">Wagers</h1>
+        <p className="page-subtitle">{events.length} {events.length === 1 ? "wager" : "wagers"}</p>
       </div>
       <div className="page-content">
         <div className="stagger-children" style={{ display: "flex", flexDirection: "column", gap: "var(--space-4)" }}>

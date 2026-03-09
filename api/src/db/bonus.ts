@@ -66,7 +66,7 @@ export async function resolveBonusEvent(
 export async function updateBonusEvent(
   partyId: string,
   eventId: string,
-  updates: { question?: string; options?: string[]; basePoints?: number }
+  updates: { question?: string; options?: string[]; maxWager?: number }
 ): Promise<void> {
   const parts: string[] = [];
   const names: Record<string, string> = {};
@@ -81,9 +81,9 @@ export async function updateBonusEvent(
     names["#opts"] = "options";
     values[":options"] = updates.options;
   }
-  if (updates.basePoints !== undefined) {
-    parts.push("basePoints = :basePoints");
-    values[":basePoints"] = updates.basePoints;
+  if (updates.maxWager !== undefined) {
+    parts.push("maxWager = :maxWager");
+    values[":maxWager"] = updates.maxWager;
   }
 
   if (parts.length === 0) return;

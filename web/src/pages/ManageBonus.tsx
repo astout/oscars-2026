@@ -18,10 +18,9 @@ import { api } from "../api/client.js";
 interface BonusEvent {
   eventId: string;
   question: string;
-  eventType: "yes-no" | "multiple-choice";
   options: string[];
   correctAnswer: string | null;
-  basePoints: number;
+  maxWager: number;
   status: "open" | "locked" | "resolved";
   createdAt: string;
   resolvedAt: string | null;
@@ -30,9 +29,8 @@ interface BonusEvent {
 interface Suggestion {
   eventId: string;
   question: string;
-  eventType: "yes-no" | "multiple-choice";
   options: string[];
-  basePoints: number;
+  maxWager: number;
 }
 
 export default function ManageBonus() {
@@ -51,7 +49,7 @@ export default function ManageBonus() {
   // Create/Edit form state
   const [formQuestion, setFormQuestion] = useState("");
   const [formOptions, setFormOptions] = useState<string[]>(["Yes", "No"]);
-  const [formPoints, setFormPoints] = useState(2);
+  const [formMaxWager, setFormMaxWager] = useState(3);
   const [newOption, setNewOption] = useState("");
 
   const fetchData = useCallback(async () => {
@@ -77,7 +75,7 @@ export default function ManageBonus() {
   const resetForm = () => {
     setFormQuestion("");
     setFormOptions(["Yes", "No"]);
-    setFormPoints(2);
+    setFormMaxWager(3);
     setNewOption("");
     setShowCreate(false);
     setEditingId(null);
@@ -89,9 +87,8 @@ export default function ManageBonus() {
     try {
       const created = await api.post<BonusEvent>(`/parties/${partyId}/bonus`, {
         question: formQuestion.trim(),
-        eventType: formOptions.length === 2 && formOptions[0] === "Yes" && formOptions[1] === "No" ? "yes-no" : "multiple-choice",
         options: formOptions,
-        basePoints: formPoints,
+        maxWager: formMaxWager,
       });
       setEvents((prev) => [...prev, created]);
       resetForm();
@@ -109,12 +106,12 @@ export default function ManageBonus() {
       await api.put(`/parties/${partyId}/bonus/${editingId}`, {
         question: formQuestion.trim(),
         options: formOptions,
-        basePoints: formPoints,
+        maxWager: formMaxWager,
       });
       setEvents((prev) =>
         prev.map((e) =>
           e.eventId === editingId
-            ? { ...e, question: formQuestion.trim(), options: formOptions, basePoints: formPoints }
+            ? { ...e, question: formQuestion.trim(), options: formOptions, maxWager: formMaxWager }
             : e
         )
       );
@@ -186,9 +183,8 @@ export default function ManageBonus() {
     try {
       const created = await api.post<BonusEvent>(`/parties/${partyId}/bonus`, {
         question: suggestion.question,
-        eventType: suggestion.eventType,
         options: suggestion.options,
-        basePoints: suggestion.basePoints,
+        maxWager: suggestion.maxWager,
       });
       setEvents((prev) => [...prev, created]);
       setSuggestions((prev) => prev.filter((s) => s.eventId !== suggestion.eventId));
@@ -203,7 +199,7 @@ export default function ManageBonus() {
     setEditingId(event.eventId);
     setFormQuestion(event.question);
     setFormOptions([...event.options]);
-    setFormPoints(event.basePoints);
+    setFormMaxWager(event.maxWager);
     setShowCreate(false);
   };
 
@@ -244,10 +240,10 @@ export default function ManageBonus() {
         <div className="page-header">
           <h1 className="page-title" style={{ display: "flex", alignItems: "center", gap: "var(--space-2)" }}>
             <Sparkle size={24} weight="fill" style={{ color: "var(--gold)" }} />
-            Manage Bonus Events
+            Manage Wagers
           </h1>
           {!loading && (
-            <p className="page-subtitle">{events.length} {events.length === 1 ? "event" : "events"}</p>
+            <p className="page-subtitle">{events.length} {events.length === 1 ? "wager" : "wagers"}</p>
           )}
         </div>
 
@@ -263,7 +259,7 @@ export default function ManageBonus() {
             <div style={{ display: "flex", alignItems: "center", gap: "var(--space-2)", marginBottom: "var(--space-3)" }}>
               {editingId ? <PencilSimple size={16} weight="bold" style={{ color: "var(--gold)" }} /> : <Plus size={16} weight="bold" style={{ color: "var(--gold)" }} />}
               <p style={{ fontSize: "var(--text-sm)", fontWeight: "var(--weight-medium)", color: "var(--text-secondary)" }}>
-                {editingId ? "Edit Event" : "New Bonus Event"}
+                {editingId ? "Edit Wager" : "New Wager"}
               </p>
             </div>
 
@@ -321,16 +317,16 @@ export default function ManageBonus() {
               )}
             </div>
 
-            {/* Base Points */}
+            {/* Max Wager */}
             <p style={{ fontSize: "var(--text-xs)", color: "var(--text-muted)", marginBottom: "var(--space-2)", textTransform: "uppercase", letterSpacing: "var(--tracking-wide)" }}>
-              Base Points
+              Max Wager
             </p>
-            <div style={{ display: "flex", gap: "var(--space-2)", marginBottom: "var(--space-4)" }}>
-              {[1, 2, 3, 5].map((pts) => (
+            <div style={{ display: "flex", flexWrap: "wrap", gap: "var(--space-2)", marginBottom: "var(--space-2)" }}>
+              {[1, 2, 3, 4, 5, 6, 7].map((w) => (
                 <button
-                  key={pts}
+                  key={w}
                   className="tap-target"
-                  onClick={() => setFormPoints(pts)}
+                  onClick={() => setFormMaxWager(w)}
                   style={{
                     padding: "var(--space-2) var(--space-3)",
                     borderRadius: "var(--radius-pill)",
@@ -338,15 +334,18 @@ export default function ManageBonus() {
                     fontWeight: "var(--weight-medium)",
                     fontFamily: "var(--font-mono)",
                     cursor: "pointer",
-                    border: formPoints === pts ? "none" : "0.5px solid var(--border)",
-                    background: formPoints === pts ? "var(--gold)" : "transparent",
-                    color: formPoints === pts ? "var(--text-on-gold)" : "var(--text-secondary)",
+                    border: formMaxWager === w ? "none" : "0.5px solid var(--border)",
+                    background: formMaxWager === w ? "var(--gold)" : "transparent",
+                    color: formMaxWager === w ? "var(--text-on-gold)" : "var(--text-secondary)",
                   }}
                 >
-                  {pts}
+                  {w}
                 </button>
               ))}
             </div>
+            <p style={{ fontSize: "var(--text-xs)", color: "var(--text-muted)", marginBottom: "var(--space-4)" }}>
+              Members wager 1-{formMaxWager} pts. Correct = +wager, wrong = -wager.
+            </p>
 
             {/* Actions */}
             <div style={{ display: "flex", gap: "var(--space-2)" }}>
@@ -357,7 +356,7 @@ export default function ManageBonus() {
                 style={{ flex: 1 }}
               >
                 <Check size={16} weight="bold" />
-                {editingId ? "Save Changes" : "Create Event"}
+                {editingId ? "Save Changes" : "Create Wager"}
               </button>
               <button className="btn btn-ghost" onClick={resetForm} style={{ flex: 0 }}>
                 Cancel
@@ -370,7 +369,7 @@ export default function ManageBonus() {
         {!isFormActive && (
           <button className="btn btn-primary btn-full" onClick={startCreate} style={{ marginBottom: "var(--space-6)" }}>
             <Plus size={18} weight="bold" />
-            New Bonus Event
+            New Wager
           </button>
         )}
 
@@ -380,7 +379,7 @@ export default function ManageBonus() {
             <div style={{ display: "flex", alignItems: "center", gap: "var(--space-2)", marginBottom: "var(--space-3)" }}>
               <Lightning size={16} weight="bold" style={{ color: "var(--gold)" }} />
               <p style={{ fontSize: "var(--text-sm)", fontWeight: "var(--weight-medium)", color: "var(--text-secondary)" }}>
-                Suggested Events
+                Suggested Wagers
               </p>
             </div>
             <div className="stagger-children" style={{ display: "flex", flexDirection: "column", gap: "var(--space-2)" }}>
@@ -392,7 +391,7 @@ export default function ManageBonus() {
                         {s.question}
                       </p>
                       <p style={{ fontSize: "var(--text-xs)", color: "var(--text-muted)", marginTop: 2 }}>
-                        {s.options.join(" / ")} &middot; {s.basePoints} pts
+                        {s.options.join(" / ")} &middot; max {s.maxWager}
                       </p>
                     </div>
                     <button
@@ -420,8 +419,8 @@ export default function ManageBonus() {
         ) : events.length === 0 && !isFormActive ? (
           <div className="empty-state">
             <Sparkle size={48} className="empty-state-icon" />
-            <p className="empty-state-title">No bonus events yet</p>
-            <p className="empty-state-text">Create custom prediction questions for your party members.</p>
+            <p className="empty-state-title">No wagers yet</p>
+            <p className="empty-state-text">Create custom wager questions for your party members.</p>
           </div>
         ) : (
           <div className="stagger-children" style={{ display: "flex", flexDirection: "column", gap: "var(--space-3)" }}>
@@ -439,7 +438,7 @@ export default function ManageBonus() {
                     </p>
                     <div style={{ display: "flex", alignItems: "center", gap: "var(--space-2)", marginTop: "var(--space-1)" }}>
                       <span className="mono" style={{ fontSize: "var(--text-xs)", color: "var(--gold)" }}>
-                        {event.basePoints} pts
+                        max {event.maxWager}
                       </span>
                       {statusBadge(event.status)}
                     </div>

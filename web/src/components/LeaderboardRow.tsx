@@ -109,7 +109,7 @@ export default function LeaderboardRow({ entry, isCurrentUser }: LeaderboardRowP
           }}
         >
           <StatRow label="Category pts" value={entry.categoryPoints} />
-          <StatRow label="Bonus pts" value={entry.bonusPoints} />
+          <StatRow label="Wager pts" value={entry.bonusPoints} />
           <StatRow label="Correct 1st picks" value={entry.correctFirst} />
           <StatRow label="Correct 2nd picks" value={entry.correctSecond} />
         </div>

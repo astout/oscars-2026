@@ -12,10 +12,9 @@ interface Wager {
 interface BonusEvent {
   eventId: string;
   question: string;
-  eventType: "yes-no" | "multiple-choice";
   options: string[];
   correctAnswer: string | null;
-  basePoints: number;
+  maxWager: number;
   status: "open" | "locked" | "resolved";
   createdAt: string;
   resolvedAt: string | null;
@@ -27,12 +26,12 @@ interface BonusCardProps {
   onWager: (eventId: string, prediction: string, wagerAmount: number) => Promise<void>;
 }
 
-const WAGER_AMOUNTS = [0, 1, 2, 3, 4, 5];
-
 export default function BonusCard({ event, onWager }: BonusCardProps) {
   const [selectedPrediction, setSelectedPrediction] = useState<string | null>(null);
-  const [selectedWager, setSelectedWager] = useState<number>(0);
+  const [selectedWager, setSelectedWager] = useState<number>(1);
   const [submitting, setSubmitting] = useState(false);
+
+  const wagerAmounts = Array.from({ length: event.maxWager }, (_, i) => i + 1);
 
   const statusBadgeClass =
     event.status === "open"
@@ -63,23 +62,21 @@ export default function BonusCard({ event, onWager }: BonusCardProps) {
 
     const isCorrect = wager.prediction === event.correctAnswer;
     if (isCorrect) {
-      const points = event.basePoints + 2 * wager.wagerAmount;
       return (
         <div style={{ display: "flex", alignItems: "center", gap: "var(--space-2)" }}>
           <Check size={16} weight="bold" style={{ color: "var(--status-correct)" }} />
           <span style={{ fontSize: "var(--text-sm)", color: "var(--status-correct)", fontWeight: "var(--weight-medium)" }}>
-            +{points} pts
+            +{wager.wagerAmount} pts
           </span>
         </div>
       );
     }
 
-    const lostPoints = wager.wagerAmount;
     return (
       <div style={{ display: "flex", alignItems: "center", gap: "var(--space-2)" }}>
         <X size={16} weight="bold" style={{ color: "var(--status-wrong)" }} />
         <span style={{ fontSize: "var(--text-sm)", color: "var(--status-wrong)", fontWeight: "var(--weight-medium)" }}>
-          {lostPoints > 0 ? `-${lostPoints} pts` : "0 pts"}
+          -{wager.wagerAmount} pts
         </span>
       </div>
     );
@@ -92,7 +89,7 @@ export default function BonusCard({ event, onWager }: BonusCardProps) {
         border: "1px dashed var(--border-gold)",
       }}
     >
-      {/* Header: question + base points + status */}
+      {/* Header: question + max wager + status */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "var(--space-3)" }}>
         <div style={{ flex: 1 }}>
           <p style={{ fontSize: "var(--text-md)", fontWeight: "var(--weight-medium)", color: "var(--text-primary)" }}>
@@ -101,7 +98,7 @@ export default function BonusCard({ event, onWager }: BonusCardProps) {
         </div>
         <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: "var(--space-2)", flexShrink: 0 }}>
           <span className="mono" style={{ fontSize: "var(--text-sm)", color: "var(--gold)" }}>
-            {event.basePoints} pts
+            max {event.maxWager}
           </span>
           <span className={`badge ${statusBadgeClass}`}>{event.status}</span>
         </div>
@@ -132,7 +129,7 @@ export default function BonusCard({ event, onWager }: BonusCardProps) {
           </div>
           {event.userWager && (
             <p style={{ fontSize: "var(--text-xs)", color: "var(--text-muted)", marginBottom: "var(--space-2)" }}>
-              Your pick: {event.userWager.prediction} &middot; Wager: {event.userWager.wagerAmount} pts
+              Your pick: {event.userWager.prediction} &middot; Wagered: {event.userWager.wagerAmount} pts
             </p>
           )}
           {renderResolved()}
@@ -157,7 +154,7 @@ export default function BonusCard({ event, onWager }: BonusCardProps) {
             Your pick: <strong>{event.userWager.prediction}</strong>
           </span>
           <span style={{ fontSize: "var(--text-sm)", color: "var(--text-muted)", marginLeft: "auto" }}>
-            Wager: {event.userWager.wagerAmount} pts
+            Wagered: {event.userWager.wagerAmount} pts
           </span>
         </div>
       )}
@@ -200,10 +197,10 @@ export default function BonusCard({ event, onWager }: BonusCardProps) {
 
           {/* Wager chips */}
           <p style={{ fontSize: "var(--text-xs)", color: "var(--text-muted)", marginBottom: "var(--space-2)", textTransform: "uppercase", letterSpacing: "var(--tracking-wide)" }}>
-            Wager
+            Wager (1-{event.maxWager})
           </p>
           <div style={{ display: "flex", flexWrap: "wrap", gap: "var(--space-2)", marginBottom: "var(--space-2)" }}>
-            {WAGER_AMOUNTS.map((amt) => {
+            {wagerAmounts.map((amt) => {
               const isSelected = selectedWager === amt;
               return (
                 <button
@@ -233,7 +230,7 @@ export default function BonusCard({ event, onWager }: BonusCardProps) {
             })}
           </div>
           <p style={{ fontSize: "var(--text-xs)", color: "var(--text-muted)", marginBottom: "var(--space-4)" }}>
-            Risk: 2x return or lose wager
+            Correct = +{selectedWager} pts &middot; Wrong = -{selectedWager} pts
           </p>
 
           {/* Lock In button */}
@@ -252,7 +249,7 @@ export default function BonusCard({ event, onWager }: BonusCardProps) {
       {event.status === "locked" && !event.userWager && (
         <div style={{ marginTop: "var(--space-4)" }}>
           <p style={{ fontSize: "var(--text-sm)", color: "var(--text-muted)", fontStyle: "italic" }}>
-            Betting is closed
+            Wagering is closed
           </p>
         </div>
       )}

@@ -60,10 +60,9 @@ export interface Pick {
 export interface BonusEvent {
   eventId: string;
   question: string;
-  eventType: "yes-no" | "multiple-choice";
   options: string[];
   correctAnswer: string | null;
-  basePoints: number;
+  maxWager: number;
   status: "open" | "locked" | "resolved";
   createdAt: string;
   resolvedAt: string | null;

@@ -207,7 +207,7 @@ export default function WatchPartyDetail() {
                 onClick={() => navigate(`/party/${partyId}/bonus/manage`)}
               >
                 <Sparkle size={18} weight="bold" style={{ color: "var(--gold)" }} />
-                Manage Bonus Events
+                Manage Wagers
               </button>
               <button
                 className="btn btn-secondary btn-full"

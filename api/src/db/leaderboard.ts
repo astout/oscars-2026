@@ -70,14 +70,13 @@ export async function computeLeaderboard(
       const wager = wagerMap.get(`${member.userId}:${event.eventId}`);
       if (!wager) continue;
       if (wager.prediction === event.correctAnswer) {
-        bonusPoints += event.basePoints;
         bonusPoints += wager.wagerAmount;
       } else {
         bonusPoints -= wager.wagerAmount;
       }
     }
 
-    const totalPoints = Math.max(0, categoryPoints + bonusPoints);
+    const totalPoints = categoryPoints + bonusPoints;
 
     return {
       userId: member.userId,
