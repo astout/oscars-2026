@@ -15,6 +15,7 @@ export class DataStack extends cdk.Stack {
       billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
       removalPolicy: cdk.RemovalPolicy.RETAIN,
       pointInTimeRecovery: true,
+      timeToLiveAttribute: "ttl",
     });
 
     this.table.addGlobalSecondaryIndex({

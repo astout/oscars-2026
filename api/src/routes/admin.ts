@@ -1,9 +1,40 @@
 import { Hono } from "hono";
-import { setWinner, clearWinner, setCategoryLocked } from "../db/categories.js";
+import { setWinner, clearWinner, setCategoryLocked, setCategoryUpNext, getCategory, getNominees, getCategories } from "../db/categories.js";
 import { emceeGuard } from "../middleware/emcee-access.js";
 import { param } from "../middleware/params.js";
+import { createNotification } from "../db/notifications.js";
 
 const app = new Hono();
+
+// Get all party IDs for the event (lightweight scan, <50 parties expected)
+async function getAllPartyIds(): Promise<string[]> {
+  const { ScanCommand } = await import("@aws-sdk/lib-dynamodb");
+  const { db, TABLE_NAME } = await import("../db/client.js");
+
+  const result = await db.send(
+    new ScanCommand({
+      TableName: TABLE_NAME,
+      FilterExpression: "SK = :sk AND eventId = :eid",
+      ExpressionAttributeValues: {
+        ":sk": "METADATA",
+        ":eid": "oscars_2026",
+      },
+      ProjectionExpression: "partyId",
+    })
+  );
+  return (result.Items || []).map((i: any) => i.partyId).filter(Boolean);
+}
+
+async function notifyAllParties(
+  type: "category-awarded" | "category-up-next" | "leaderboard-change",
+  message: string,
+  linkTo?: string,
+) {
+  const partyIds = await getAllPartyIds();
+  await Promise.all(
+    partyIds.map((pid) => createNotification(pid, type, message, linkTo))
+  );
+}
 
 // Set winner for a category (emcee only)
 app.post("/:partyId/categories/:categoryId/winner", emceeGuard, async (c) => {
@@ -20,7 +51,48 @@ app.post("/:partyId/categories/:categoryId/winner", emceeGuard, async (c) => {
   }
 
   await setWinner(categoryId, winnerId);
+  await setCategoryUpNext(categoryId, false);
+
+  // Notify: "Winner Name wins Category Name!"
+  const [cat, nominees] = await Promise.all([
+    getCategory(categoryId),
+    getNominees(categoryId),
+  ]);
+  const winner = nominees.find((n) => n.nomineeId === winnerId);
+  if (cat && winner) {
+    notifyAllParties("category-awarded", `${winner.name} wins ${cat.name}!`, `/categories`).catch(() => {});
+  }
+
   return c.json({ categoryId, winnerId });
+});
+
+// Set category as "up next" (emcee only)
+app.post("/:partyId/categories/:categoryId/up-next", emceeGuard, async (c) => {
+  const categoryId = param(c, "categoryId");
+
+  // Clear any other up-next categories
+  const allCats = await getCategories();
+  await Promise.all(
+    allCats
+      .filter((cat) => cat.upNext && cat.categoryId !== categoryId)
+      .map((cat) => setCategoryUpNext(cat.categoryId, false))
+  );
+
+  await setCategoryUpNext(categoryId, true);
+  await setCategoryLocked(categoryId, true);
+
+  const cat = await getCategory(categoryId);
+  if (cat) {
+    notifyAllParties("category-up-next", `${cat.name} is up next — make your picks!`, `/categories`).catch(() => {});
+  }
+
+  return c.json({ categoryId, upNext: true });
+});
+
+// Clear up-next (emcee only)
+app.delete("/:partyId/categories/:categoryId/up-next", emceeGuard, async (c) => {
+  await setCategoryUpNext(param(c, "categoryId"), false);
+  return c.json({ upNext: false });
 });
 
 // Lock single category (emcee only)

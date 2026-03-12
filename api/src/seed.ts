@@ -14,6 +14,7 @@ for (const cat of data.categories) {
     name: cat.name,
     displayOrder: cat.displayOrder,
     showImages: cat.showImages ?? false,
+    upNext: false,
     winnerId: null,
     locked: false,
     resolvedAt: null,

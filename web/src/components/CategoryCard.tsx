@@ -1,4 +1,4 @@
-import { Trophy, Lock, LockOpen } from "@phosphor-icons/react";
+import { Trophy, Lock, LockOpen, Lightning } from "@phosphor-icons/react";
 
 interface Nominee {
   nomineeId: string;
@@ -22,6 +22,7 @@ interface Category {
   name: string;
   displayOrder: number;
   showImages: boolean;
+  upNext: boolean;
   winnerId: string | null;
   locked: boolean;
   resolvedAt: string | null;
@@ -66,6 +67,10 @@ export default function CategoryCard({ category, pick, onSelect }: CategoryCardP
         {resolved ? (
           <span className="badge badge-resolved">
             <Trophy size={12} weight="fill" /> Awarded
+          </span>
+        ) : category.upNext ? (
+          <span className="badge badge-up-next">
+            <Lightning size={12} weight="fill" /> Up Next
           </span>
         ) : locked ? (
           <span className="badge badge-locked">

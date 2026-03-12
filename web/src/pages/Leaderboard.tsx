@@ -1,6 +1,8 @@
 import { useState, useEffect, useCallback } from "react";
 import { useParams } from "react-router-dom";
-import { Trophy, ArrowClockwise } from "@phosphor-icons/react";
+import { Trophy, ArrowClockwise, ChartBar } from "@phosphor-icons/react";
+
+const titleStyle: React.CSSProperties = { display: "flex", alignItems: "center", gap: "var(--space-2)" };
 import { api } from "../api/client.js";
 import { useAuthContext } from "../auth/AuthContext.js";
 import LeaderboardRow from "../components/LeaderboardRow.js";
@@ -48,7 +50,7 @@ export default function Leaderboard() {
   if (loading) {
     return (
       <div className="page">
-        <div className="page-header"><h1 className="page-title">Leaderboard</h1></div>
+        <div className="page-header"><h1 className="page-title" style={titleStyle}><ChartBar size={24} weight="fill" style={{ color: "var(--gold)" }} />Leaderboard</h1></div>
         <div className="page-content">
           <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-3)" }}>
             {[1, 2, 3, 4, 5].map((i) => (
@@ -63,7 +65,7 @@ export default function Leaderboard() {
   if (error) {
     return (
       <div className="page">
-        <div className="page-header"><h1 className="page-title">Leaderboard</h1></div>
+        <div className="page-header"><h1 className="page-title" style={titleStyle}><ChartBar size={24} weight="fill" style={{ color: "var(--gold)" }} />Leaderboard</h1></div>
         <div className="page-content">
           <p style={{ color: "var(--status-wrong)", fontSize: "var(--text-sm)", textAlign: "center" }}>{error}</p>
         </div>
@@ -74,7 +76,7 @@ export default function Leaderboard() {
   if (entries.length === 0) {
     return (
       <div className="page animate-fade-in-up">
-        <div className="page-header"><h1 className="page-title">Leaderboard</h1></div>
+        <div className="page-header"><h1 className="page-title" style={titleStyle}><ChartBar size={24} weight="fill" style={{ color: "var(--gold)" }} />Leaderboard</h1></div>
         <div className="page-content">
           <div className="empty-state">
             <Trophy size={48} className="empty-state-icon" />
@@ -92,7 +94,7 @@ export default function Leaderboard() {
         <OscarStatuette size={80} />
       </div>
       <div className="page-header" style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-        <h1 className="page-title">Leaderboard</h1>
+        <h1 className="page-title" style={titleStyle}><ChartBar size={24} weight="fill" style={{ color: "var(--gold)" }} />Leaderboard</h1>
         <button className="btn btn-ghost btn-sm" onClick={handleRefresh} disabled={refreshing} aria-label="Refresh leaderboard">
           <ArrowClockwise size={18} weight="bold" style={{ transition: "transform var(--duration-slow) var(--ease-out)", transform: refreshing ? "rotate(360deg)" : undefined }} />
         </button>

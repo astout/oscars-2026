@@ -8,6 +8,7 @@ import {
   CaretDown,
   CaretUp,
   Crown,
+  Lightning,
 } from "@phosphor-icons/react";
 import { api } from "../api/client.js";
 import OscarStatuette from "../components/OscarStatuette.js";
@@ -24,6 +25,7 @@ interface Category {
   categoryId: string;
   name: string;
   displayOrder: number;
+  upNext: boolean;
   winnerId: string | null;
   locked: boolean;
   resolvedAt: string | null;
@@ -126,6 +128,29 @@ export default function CeremonyMode() {
     }
   };
 
+  const setUpNext = async (categoryId: string, isUpNext: boolean) => {
+    if (!partyId) return;
+    setActionLoading(`upnext-${categoryId}`);
+    try {
+      if (isUpNext) {
+        await api.delete(`/parties/${partyId}/categories/${categoryId}/up-next`);
+      } else {
+        await api.post(`/parties/${partyId}/categories/${categoryId}/up-next`);
+      }
+      setCategories((prev) =>
+        prev.map((c) => ({
+          ...c,
+          upNext: c.categoryId === categoryId ? !isUpNext : false,
+          locked: c.categoryId === categoryId && !isUpNext ? true : c.locked,
+        }))
+      );
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to update");
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
   const resolvedCount = categories.filter((c) => c.winnerId).length;
   const totalCount = categories.length;
 
@@ -211,21 +236,34 @@ export default function CeremonyMode() {
                       </div>
                       {winner ? (
                         <p style={styles.winnerName}>{winner.name}</p>
+                      ) : cat.upNext ? (
+                        <p style={styles.upNextText}>Up Next</p>
                       ) : (
                         <p style={styles.pendingText}>{cat.locked ? "Locked" : "Open"}</p>
                       )}
                     </div>
                     <div style={styles.catActions}>
                       {!cat.winnerId && (
-                        <button
-                          className="btn btn-ghost btn-sm"
-                          onClick={(e) => { e.stopPropagation(); toggleCategoryLock(cat); }}
-                          disabled={actionLoading === `lock-${cat.categoryId}`}
-                          aria-label={cat.locked ? "Unlock" : "Lock"}
-                          style={{ color: cat.locked ? "var(--status-wrong)" : "var(--text-muted)" }}
-                        >
-                          {cat.locked ? <Lock size={16} weight="fill" /> : <LockOpen size={16} />}
-                        </button>
+                        <>
+                          <button
+                            className="btn btn-ghost btn-sm"
+                            onClick={(e) => { e.stopPropagation(); setUpNext(cat.categoryId, cat.upNext); }}
+                            disabled={actionLoading === `upnext-${cat.categoryId}`}
+                            aria-label={cat.upNext ? "Clear up next" : "Set up next"}
+                            style={{ color: cat.upNext ? "var(--gold)" : "var(--text-faint)" }}
+                          >
+                            <Lightning size={16} weight={cat.upNext ? "fill" : "regular"} />
+                          </button>
+                          <button
+                            className="btn btn-ghost btn-sm"
+                            onClick={(e) => { e.stopPropagation(); toggleCategoryLock(cat); }}
+                            disabled={actionLoading === `lock-${cat.categoryId}`}
+                            aria-label={cat.locked ? "Unlock" : "Lock"}
+                            style={{ color: cat.locked ? "var(--status-wrong)" : "var(--text-muted)" }}
+                          >
+                            {cat.locked ? <Lock size={16} weight="fill" /> : <LockOpen size={16} />}
+                          </button>
+                        </>
                       )}
                       {isExpanded ? (
                         <CaretUp size={16} style={{ color: "var(--text-muted)" }} />
@@ -285,6 +323,7 @@ const styles: Record<string, React.CSSProperties> = {
   catName: { fontSize: "var(--text-base)", fontWeight: "var(--weight-medium)" as unknown as number, color: "var(--text-primary)" },
   winnerName: { fontSize: "var(--text-sm)", color: "var(--gold)", marginTop: 2 },
   pendingText: { fontSize: "var(--text-sm)", color: "var(--text-muted)", marginTop: 2 },
+  upNextText: { fontSize: "var(--text-sm)", color: "var(--gold)", fontWeight: "var(--weight-medium)" as unknown as number, marginTop: 2 },
   catActions: { display: "flex", alignItems: "center", gap: "var(--space-1)", flexShrink: 0 },
   nominees: { borderTop: "0.5px solid var(--border-subtle)", padding: "var(--space-2)", display: "flex", flexDirection: "column" as const, gap: "var(--space-1)" },
   nomineeRow: { display: "flex", alignItems: "center", gap: "var(--space-3)", padding: "var(--space-3) var(--space-3)", borderRadius: "var(--radius-md)", background: "none", border: "none", cursor: "pointer", fontFamily: "var(--font-body)", textAlign: "left" as const, width: "100%", transition: "background 150ms" },

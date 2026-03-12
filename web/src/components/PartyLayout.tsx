@@ -3,6 +3,8 @@ import { Outlet, useParams, useNavigate } from "react-router-dom";
 import { CaretLeft, UserCircle } from "@phosphor-icons/react";
 import { api } from "../api/client.js";
 import BottomNav from "./BottomNav.js";
+import ToastContainer, { useToastQueue } from "./Toast.js";
+import { useNotifications } from "../hooks/useNotifications.js";
 
 interface PartyInfo {
   partyId: string;
@@ -13,6 +15,9 @@ export default function PartyLayout() {
   const { partyId } = useParams<{ partyId: string }>();
   const navigate = useNavigate();
   const [party, setParty] = useState<PartyInfo | null>(null);
+  const { toasts, addToast, dismissToast } = useToastQueue();
+
+  useNotifications(partyId, addToast);
 
   useEffect(() => {
     if (!partyId) return;
@@ -23,6 +28,7 @@ export default function PartyLayout() {
 
   return (
     <>
+      <ToastContainer toasts={toasts} onDismiss={dismissToast} partyId={partyId} />
       <div style={styles.topBar}>
         <button
           className="tap-target"

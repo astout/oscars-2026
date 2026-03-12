@@ -98,6 +98,20 @@ export async function setCategoryLocked(
   );
 }
 
+export async function setCategoryUpNext(
+  categoryId: string,
+  upNext: boolean
+): Promise<void> {
+  await db.send(
+    new UpdateCommand({
+      TableName: TABLE_NAME,
+      Key: { PK: EVENT_PK, SK: `CATEGORY#${categoryId}` },
+      UpdateExpression: "SET upNext = :upNext",
+      ExpressionAttributeValues: { ":upNext": upNext },
+    })
+  );
+}
+
 export async function putCategory(category: Category): Promise<void> {
   await db.send(
     new PutCommand({

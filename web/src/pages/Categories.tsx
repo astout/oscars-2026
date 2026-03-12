@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
-import { useParams } from "react-router-dom";
-import { FilmSlate } from "@phosphor-icons/react";
+import { useParams, useNavigate } from "react-router-dom";
+import { FilmSlate, Sparkle } from "@phosphor-icons/react";
 import { api } from "../api/client.js";
 import CategoryCard from "../components/CategoryCard.js";
 import PickModal from "../components/PickModal.js";
@@ -20,6 +20,7 @@ interface Category {
   name: string;
   displayOrder: number;
   showImages: boolean;
+  upNext: boolean;
   winnerId: string | null;
   locked: boolean;
   resolvedAt: string | null;
@@ -36,6 +37,7 @@ interface Pick {
 
 export default function Categories() {
   const { partyId } = useParams<{ partyId: string }>();
+  const navigate = useNavigate();
   const [categories, setCategories] = useState<Category[]>([]);
   const [picksMap, setPicksMap] = useState<Map<string, Pick>>(new Map());
   const [loading, setLoading] = useState(true);
@@ -84,6 +86,19 @@ export default function Categories() {
         <div style={{ display: "flex", justifyContent: "center", paddingTop: "var(--space-4)" }}>
           <OscarStatuette size={80} />
         </div>
+
+        <button
+          onClick={() => navigate(`/party/${partyId}/bonus`)}
+          style={styles.wagerBanner}
+          className="tap-target"
+        >
+          <Sparkle size={20} weight="fill" style={{ color: "var(--gold)", flexShrink: 0 }} />
+          <p style={styles.wagerText}>
+            New this year! Don't miss out on earning extra points with{" "}
+            <span style={styles.wagerLink}>Wagers</span>.
+          </p>
+        </button>
+
         <div className="page-header animate-fade-in-up">
           <h1 className="page-title" style={styles.title}>
             <FilmSlate size={24} weight="fill" style={{ color: "var(--gold)" }} />
@@ -135,4 +150,29 @@ const styles: Record<string, React.CSSProperties> = {
   title: { display: "flex", alignItems: "center", gap: "var(--space-2)" },
   error: { color: "var(--status-wrong)", fontSize: "var(--text-sm)", textAlign: "center", padding: "var(--space-4)" },
   skeleton: { height: 120 },
+  wagerBanner: {
+    display: "flex",
+    alignItems: "center",
+    gap: "var(--space-3)",
+    padding: "var(--space-3) var(--space-4)",
+    background: "var(--surface-raised)",
+    border: "0.5px solid var(--border-gold)",
+    borderRadius: "var(--radius-lg)",
+    marginTop: "var(--space-4)",
+    cursor: "pointer",
+    width: "100%",
+    textAlign: "left" as const,
+    fontFamily: "var(--font-body)",
+  },
+  wagerText: {
+    fontSize: "var(--text-sm)",
+    color: "var(--text-secondary)",
+    lineHeight: 1.4,
+  },
+  wagerLink: {
+    color: "var(--gold)",
+    fontWeight: "var(--weight-semibold)" as unknown as number,
+    textDecoration: "underline",
+    textUnderlineOffset: 2,
+  },
 };

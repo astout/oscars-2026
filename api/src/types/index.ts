@@ -36,6 +36,7 @@ export interface Category {
   name: string;
   displayOrder: number;
   showImages: boolean;
+  upNext: boolean;
   winnerId: string | null;
   locked: boolean;
   resolvedAt: string | null;
