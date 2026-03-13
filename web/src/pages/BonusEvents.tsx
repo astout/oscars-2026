@@ -266,9 +266,9 @@ export default function BonusEvents() {
           <button
             className="tap-target"
             onClick={() => setShowGuide(true)}
-            style={{ background: "none", border: "0.5px solid var(--border)", borderRadius: "var(--radius-pill)", padding: "var(--space-1) var(--space-3)", display: "flex", alignItems: "center", gap: "var(--space-1)", cursor: "pointer", color: "var(--text-muted)", fontSize: "var(--text-xs)", fontFamily: "var(--font-body)" }}
+            style={{ background: "none", border: "0.5px solid var(--border-gold)", borderRadius: "var(--radius-pill)", padding: "var(--space-2) var(--space-4)", display: "flex", alignItems: "center", gap: "var(--space-2)", cursor: "pointer", color: "var(--gold)", fontSize: 14, fontFamily: "var(--font-body)" }}
           >
-            <Question size={14} weight="bold" />
+            <Question size={16} weight="bold" />
             How it works
           </button>
         </div>
