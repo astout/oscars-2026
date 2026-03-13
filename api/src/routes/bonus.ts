@@ -42,21 +42,25 @@ app.get("/:partyId/bonus", memberGuard, async (c) => {
 // Create bonus event (host only)
 app.post("/:partyId/bonus", hostGuard, async (c) => {
   const partyId = param(c, "partyId");
-  const { question, options, maxWager } = await c.req.json();
+  const { question, options, maxWager, minWager } = await c.req.json();
 
   if (!question?.trim()) {
     return c.json({ error: "Question is required" }, 400);
   }
-  if (!Array.isArray(options) || options.length < 2) {
-    return c.json({ error: "At least 2 options required" }, 400);
+  if (!Array.isArray(options) || options.length < 1) {
+    return c.json({ error: "At least 1 option required" }, 400);
   }
+
+  const clampedMax = Math.min(Math.max(1, maxWager || 3), 7);
+  const clampedMin = Math.min(Math.max(1, minWager || 1), clampedMax);
 
   const event: BonusEvent = {
     eventId: randomUUID(),
     question: question.trim(),
     options,
     correctAnswer: null,
-    maxWager: Math.min(Math.max(1, maxWager || 3), 7),
+    minWager: clampedMin,
+    maxWager: clampedMax,
     status: "open",
     createdAt: new Date().toISOString(),
     resolvedAt: null,
@@ -84,19 +88,23 @@ app.patch("/:partyId/bonus/:eventId", hostGuard, async (c) => {
 app.put("/:partyId/bonus/:eventId", hostGuard, async (c) => {
   const partyId = param(c, "partyId");
   const eventId = param(c, "eventId");
-  const { question, options, maxWager } = await c.req.json();
+  const { question, options, maxWager, minWager } = await c.req.json();
 
   if (question !== undefined && !question?.trim()) {
     return c.json({ error: "Question cannot be empty" }, 400);
   }
-  if (options !== undefined && (!Array.isArray(options) || options.length < 2)) {
-    return c.json({ error: "At least 2 options required" }, 400);
+  if (options !== undefined && (!Array.isArray(options) || options.length < 1)) {
+    return c.json({ error: "At least 1 option required" }, 400);
   }
+
+  const clampedMax = maxWager !== undefined ? Math.min(Math.max(1, maxWager), 7) : undefined;
+  const clampedMin = minWager !== undefined ? Math.min(Math.max(1, minWager), clampedMax ?? 7) : undefined;
 
   await updateBonusEvent(partyId, eventId, {
     ...(question !== undefined && { question: question.trim() }),
     ...(options !== undefined && { options }),
-    ...(maxWager !== undefined && { maxWager: Math.min(Math.max(1, maxWager), 7) }),
+    ...(clampedMax !== undefined && { maxWager: clampedMax }),
+    ...(clampedMin !== undefined && { minWager: clampedMin }),
   });
 
   return c.json({ updated: true });
@@ -152,6 +160,7 @@ app.get("/:partyId/bonus/suggestions", hostGuard, async (c) => {
         eventId: b.eventId,
         question: b.question,
         options: b.options,
+        minWager: b.minWager,
         maxWager: b.maxWager,
       }))
   );
@@ -178,8 +187,9 @@ app.post("/:partyId/bonus/:eventId/wager", memberGuard, async (c) => {
     return c.json({ error: "Wagering is closed" }, 400);
   }
 
-  const maxWager = event.maxWager || 7;
-  const amount = Math.min(Math.max(1, wagerAmount || 1), maxWager);
+  const eventMax = event.maxWager || 7;
+  const eventMin = event.minWager || 1;
+  const amount = Math.min(Math.max(eventMin, wagerAmount || eventMin), eventMax);
 
   const wager: Wager = {
     userId,

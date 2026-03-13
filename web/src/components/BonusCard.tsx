@@ -14,6 +14,7 @@ interface BonusEvent {
   question: string;
   options: string[];
   correctAnswer: string | null;
+  minWager?: number;
   maxWager: number;
   status: "open" | "locked" | "resolved";
   createdAt: string;
@@ -27,11 +28,12 @@ interface BonusCardProps {
 }
 
 export default function BonusCard({ event, onWager }: BonusCardProps) {
+  const minWager = event.minWager || 1;
   const [selectedPrediction, setSelectedPrediction] = useState<string | null>(null);
-  const [selectedWager, setSelectedWager] = useState<number>(1);
+  const [selectedWager, setSelectedWager] = useState<number>(minWager);
   const [submitting, setSubmitting] = useState(false);
 
-  const wagerAmounts = Array.from({ length: event.maxWager }, (_, i) => i + 1);
+  const wagerAmounts = Array.from({ length: event.maxWager - minWager + 1 }, (_, i) => i + minWager);
 
   const statusBadgeClass =
     event.status === "open"
@@ -98,7 +100,7 @@ export default function BonusCard({ event, onWager }: BonusCardProps) {
         </div>
         <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: "var(--space-2)", flexShrink: 0 }}>
           <span className="mono" style={{ fontSize: "var(--text-sm)", color: "var(--gold)" }}>
-            max {event.maxWager}
+            {minWager === event.maxWager ? `${event.maxWager} pts` : `${minWager}-${event.maxWager} pts`}
           </span>
           <span className={`badge ${statusBadgeClass}`}>{event.status}</span>
         </div>
@@ -197,7 +199,7 @@ export default function BonusCard({ event, onWager }: BonusCardProps) {
 
           {/* Wager chips */}
           <p style={{ fontSize: "var(--text-xs)", color: "var(--text-muted)", marginBottom: "var(--space-2)", textTransform: "uppercase", letterSpacing: "var(--tracking-wide)" }}>
-            Wager (1-{event.maxWager})
+            Wager ({minWager === event.maxWager ? `${event.maxWager}` : `${minWager}-${event.maxWager}`})
           </p>
           <div style={{ display: "flex", flexWrap: "wrap", gap: "var(--space-2)", marginBottom: "var(--space-2)" }}>
             {wagerAmounts.map((amt) => {

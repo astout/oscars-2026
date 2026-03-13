@@ -19,6 +19,7 @@ export async function authMiddleware(c: Context, next: Next) {
   const user: AuthUser = {
     userId: authorizer.sub,
     email: authorizer.email || "",
+    displayName: authorizer["custom:displayName"] || undefined,
   };
 
   c.set("user", user);
@@ -28,3 +29,4 @@ export async function authMiddleware(c: Context, next: Next) {
 export function getUser(c: Context): AuthUser {
   return c.get("user") as AuthUser;
 }
+

@@ -20,6 +20,7 @@ interface BonusEvent {
   question: string;
   options: string[];
   correctAnswer: string | null;
+  minWager?: number;
   maxWager: number;
   status: "open" | "locked" | "resolved";
   createdAt: string;
@@ -30,6 +31,7 @@ interface Suggestion {
   eventId: string;
   question: string;
   options: string[];
+  minWager?: number;
   maxWager: number;
 }
 
@@ -49,6 +51,7 @@ export default function ManageBonus() {
   // Create/Edit form state
   const [formQuestion, setFormQuestion] = useState("");
   const [formOptions, setFormOptions] = useState<string[]>(["Yes", "No"]);
+  const [formMinWager, setFormMinWager] = useState(1);
   const [formMaxWager, setFormMaxWager] = useState(3);
   const [newOption, setNewOption] = useState("");
 
@@ -75,6 +78,7 @@ export default function ManageBonus() {
   const resetForm = () => {
     setFormQuestion("");
     setFormOptions(["Yes", "No"]);
+    setFormMinWager(1);
     setFormMaxWager(3);
     setNewOption("");
     setShowCreate(false);
@@ -82,12 +86,13 @@ export default function ManageBonus() {
   };
 
   const handleCreate = async () => {
-    if (!partyId || !formQuestion.trim() || formOptions.length < 2) return;
+    if (!partyId || !formQuestion.trim() || formOptions.length < 1) return;
     setActionLoading("create");
     try {
       const created = await api.post<BonusEvent>(`/parties/${partyId}/bonus`, {
         question: formQuestion.trim(),
         options: formOptions,
+        minWager: formMinWager,
         maxWager: formMaxWager,
       });
       setEvents((prev) => [...prev, created]);
@@ -100,18 +105,19 @@ export default function ManageBonus() {
   };
 
   const handleUpdate = async () => {
-    if (!partyId || !editingId || !formQuestion.trim() || formOptions.length < 2) return;
+    if (!partyId || !editingId || !formQuestion.trim() || formOptions.length < 1) return;
     setActionLoading("update");
     try {
       await api.put(`/parties/${partyId}/bonus/${editingId}`, {
         question: formQuestion.trim(),
         options: formOptions,
+        minWager: formMinWager,
         maxWager: formMaxWager,
       });
       setEvents((prev) =>
         prev.map((e) =>
           e.eventId === editingId
-            ? { ...e, question: formQuestion.trim(), options: formOptions, maxWager: formMaxWager }
+            ? { ...e, question: formQuestion.trim(), options: formOptions, minWager: formMinWager, maxWager: formMaxWager }
             : e
         )
       );
@@ -184,6 +190,7 @@ export default function ManageBonus() {
       const created = await api.post<BonusEvent>(`/parties/${partyId}/bonus`, {
         question: suggestion.question,
         options: suggestion.options,
+        minWager: suggestion.minWager,
         maxWager: suggestion.maxWager,
       });
       setEvents((prev) => [...prev, created]);
@@ -199,6 +206,7 @@ export default function ManageBonus() {
     setEditingId(event.eventId);
     setFormQuestion(event.question);
     setFormOptions([...event.options]);
+    setFormMinWager(event.minWager || 1);
     setFormMaxWager(event.maxWager);
     setShowCreate(false);
   };
@@ -216,7 +224,7 @@ export default function ManageBonus() {
   };
 
   const removeOption = (idx: number) => {
-    if (formOptions.length <= 2) return;
+    if (formOptions.length <= 1) return;
     setFormOptions((prev) => prev.filter((_, i) => i !== idx));
   };
 
@@ -292,7 +300,7 @@ export default function ManageBonus() {
                   }}>
                     {opt}
                   </span>
-                  {formOptions.length > 2 && (
+                  {formOptions.length > 1 && (
                     <button className="btn btn-ghost btn-sm" onClick={() => removeOption(idx)} aria-label={`Remove ${opt}`}>
                       <X size={14} />
                     </button>
@@ -317,16 +325,43 @@ export default function ManageBonus() {
               )}
             </div>
 
+            {/* Min Wager */}
+            <p style={{ fontSize: "var(--text-xs)", color: "var(--text-muted)", marginBottom: "var(--space-2)", textTransform: "uppercase", letterSpacing: "var(--tracking-wide)" }}>
+              Min Wager
+            </p>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: "var(--space-2)", marginBottom: "var(--space-4)" }}>
+              {[1, 2, 3, 4, 5, 6, 7].filter((w) => w <= formMaxWager).map((w) => (
+                <button
+                  key={w}
+                  className="tap-target"
+                  onClick={() => { setFormMinWager(w); if (formMaxWager < w) setFormMaxWager(w); }}
+                  style={{
+                    padding: "var(--space-2) var(--space-3)",
+                    borderRadius: "var(--radius-pill)",
+                    fontSize: "var(--text-sm)",
+                    fontWeight: "var(--weight-medium)",
+                    fontFamily: "var(--font-mono)",
+                    cursor: "pointer",
+                    border: formMinWager === w ? "none" : "0.5px solid var(--border)",
+                    background: formMinWager === w ? "var(--gold)" : "transparent",
+                    color: formMinWager === w ? "var(--text-on-gold)" : "var(--text-secondary)",
+                  }}
+                >
+                  {w}
+                </button>
+              ))}
+            </div>
+
             {/* Max Wager */}
             <p style={{ fontSize: "var(--text-xs)", color: "var(--text-muted)", marginBottom: "var(--space-2)", textTransform: "uppercase", letterSpacing: "var(--tracking-wide)" }}>
               Max Wager
             </p>
             <div style={{ display: "flex", flexWrap: "wrap", gap: "var(--space-2)", marginBottom: "var(--space-2)" }}>
-              {[1, 2, 3, 4, 5, 6, 7].map((w) => (
+              {[1, 2, 3, 4, 5, 6, 7].filter((w) => w >= formMinWager).map((w) => (
                 <button
                   key={w}
                   className="tap-target"
-                  onClick={() => setFormMaxWager(w)}
+                  onClick={() => { setFormMaxWager(w); if (formMinWager > w) setFormMinWager(w); }}
                   style={{
                     padding: "var(--space-2) var(--space-3)",
                     borderRadius: "var(--radius-pill)",
@@ -344,7 +379,7 @@ export default function ManageBonus() {
               ))}
             </div>
             <p style={{ fontSize: "var(--text-xs)", color: "var(--text-muted)", marginBottom: "var(--space-4)" }}>
-              Members wager 1-{formMaxWager} pts. Correct = +wager, wrong = -wager.
+              Members wager {formMinWager === formMaxWager ? `${formMaxWager}` : `${formMinWager}-${formMaxWager}`} pts. Correct = +wager, wrong = -wager.
             </p>
 
             {/* Actions */}
@@ -352,7 +387,7 @@ export default function ManageBonus() {
               <button
                 className="btn btn-primary"
                 onClick={editingId ? handleUpdate : handleCreate}
-                disabled={!formQuestion.trim() || formOptions.length < 2 || actionLoading === "create" || actionLoading === "update"}
+                disabled={!formQuestion.trim() || formOptions.length < 1 || actionLoading === "create" || actionLoading === "update"}
                 style={{ flex: 1 }}
               >
                 <Check size={16} weight="bold" />
@@ -391,7 +426,7 @@ export default function ManageBonus() {
                         {s.question}
                       </p>
                       <p style={{ fontSize: "var(--text-xs)", color: "var(--text-muted)", marginTop: 2 }}>
-                        {s.options.join(" / ")} &middot; max {s.maxWager}
+                        {s.options.join(" / ")} &middot; {(s.minWager || 1) === s.maxWager ? `${s.maxWager} pts` : `${s.minWager || 1}-${s.maxWager} pts`}
                       </p>
                     </div>
                     <button
@@ -438,7 +473,7 @@ export default function ManageBonus() {
                     </p>
                     <div style={{ display: "flex", alignItems: "center", gap: "var(--space-2)", marginTop: "var(--space-1)" }}>
                       <span className="mono" style={{ fontSize: "var(--text-xs)", color: "var(--gold)" }}>
-                        max {event.maxWager}
+                        {(event.minWager || 1) === event.maxWager ? `${event.maxWager} pts` : `${event.minWager || 1}-${event.maxWager} pts`}
                       </span>
                       {statusBadge(event.status)}
                     </div>

@@ -1,9 +1,24 @@
 {
   "name": "oscars-2026",
+  "version": "1.0.0",
+  "description": "Oscar prediction and watch party app for the 98th Academy Awards",
+  "author": "Alex Stout",
   "private": true,
   "workspaces": [
     "api",
     "web",
     "infra"
-  ]
+  ],
+  "scripts": {
+    "dev": "npm run dev:api & npm run dev:web & wait",
+    "dev:api": "npm run dev -w api",
+    "dev:web": "npm run dev -w web",
+    "build": "npm run build -w web",
+    "typecheck": "npm run typecheck -w api && npm run typecheck -w web",
+    "deploy": "npm run deploy -w infra",
+    "seed": "npx tsx api/src/seed.ts"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.58.2"
+  }
 }

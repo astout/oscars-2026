@@ -141,7 +141,6 @@ export default function CeremonyMode() {
         prev.map((c) => ({
           ...c,
           upNext: c.categoryId === categoryId ? !isUpNext : false,
-          locked: c.categoryId === categoryId && !isUpNext ? true : c.locked,
         }))
       );
     } catch (err) {

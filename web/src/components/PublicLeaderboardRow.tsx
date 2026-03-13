@@ -1,19 +1,9 @@
 import { useState } from "react";
-import { CaretDown, CaretUp, Crown } from "@phosphor-icons/react";
+import { CaretDown, CaretUp, Crown, Users } from "@phosphor-icons/react";
+import type { PublicLeaderboardEntry } from "../types/party.js";
 
-interface LeaderboardEntry {
-  userId: string;
-  displayName: string;
-  categoryPoints: number;
-  bonusPoints: number;
-  totalPoints: number;
-  correctFirst: number;
-  correctSecond: number;
-  rank: number;
-}
-
-interface LeaderboardRowProps {
-  entry: LeaderboardEntry;
+interface Props {
+  entry: PublicLeaderboardEntry;
   isCurrentUser: boolean;
 }
 
@@ -23,7 +13,7 @@ const rankColors: Record<number, string> = {
   3: "#CD7F32",
 };
 
-export default function LeaderboardRow({ entry, isCurrentUser }: LeaderboardRowProps) {
+export default function PublicLeaderboardRow({ entry, isCurrentUser }: Props) {
   const [expanded, setExpanded] = useState(false);
 
   const rankColor = rankColors[entry.rank];
@@ -53,25 +43,39 @@ export default function LeaderboardRow({ entry, isCurrentUser }: LeaderboardRowP
           )}
         </span>
 
-        <span
-          style={{
-            flex: 1,
-            fontSize: "var(--text-base)",
-            fontWeight: isCurrentUser ? "var(--weight-medium)" : "var(--weight-normal)",
-            color: "var(--text-primary)",
-            minWidth: 0,
-            overflow: "hidden",
-            textOverflow: "ellipsis",
-            whiteSpace: "nowrap",
-          }}
-        >
-          {entry.displayName}
-          {isCurrentUser && (
-            <span style={{ fontSize: "var(--text-xs)", color: "var(--text-muted)", marginLeft: "var(--space-2)" }}>
-              (you)
-            </span>
-          )}
-        </span>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <span
+            style={{
+              display: "block",
+              fontSize: "var(--text-base)",
+              fontWeight: isCurrentUser ? "var(--weight-medium)" : "var(--weight-normal)",
+              color: "var(--text-primary)",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              whiteSpace: "nowrap",
+            }}
+          >
+            {entry.displayName}
+            {isCurrentUser && (
+              <span style={{ fontSize: "var(--text-xs)", color: "var(--text-muted)", marginLeft: "var(--space-2)" }}>
+                (you)
+              </span>
+            )}
+          </span>
+          <span
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "var(--space-1)",
+              fontSize: "var(--text-xs)",
+              color: "var(--text-faint)",
+              marginTop: 1,
+            }}
+          >
+            <Users size={10} />
+            {entry.partyName}
+          </span>
+        </div>
 
         <span
           className="mono"
@@ -106,8 +110,8 @@ export default function LeaderboardRow({ entry, isCurrentUser }: LeaderboardRowP
         >
           <StatRow label="Category pts" value={entry.categoryPoints} />
           <StatRow label="Wager pts" value={entry.bonusPoints} />
-          <StatRow label="Correct 1st picks" value={entry.correctFirst} />
-          <StatRow label="Correct 2nd picks" value={entry.correctSecond} />
+          <StatRow label="Correct 1st" value={entry.correctFirst} />
+          <StatRow label="Correct 2nd" value={entry.correctSecond} />
         </div>
       )}
     </div>

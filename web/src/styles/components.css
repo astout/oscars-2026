@@ -62,6 +62,11 @@
     0 0 40px rgba(199, 163, 65, 0.1);
 }
 
+.card-current-user {
+  border-left: 3px solid var(--gold);
+  background: var(--gold-glow);
+}
+
 /* Buttons */
 .btn {
   display: inline-flex;

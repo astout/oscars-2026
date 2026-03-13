@@ -1,22 +1,44 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Users, Plus, UserPlus, Crown, UserCircle } from "@phosphor-icons/react";
-import { api } from "../api/client.js";
-import type { Party } from "../types/party.js";
+import { Users, Plus, UserPlus, Crown, UserCircle, GlobeSimple, ChartBar } from "@phosphor-icons/react";
+import { api, publicApi } from "../api/client.js";
+import type { Party, PublicParty } from "../types/party.js";
 
 export default function WatchParties() {
   const navigate = useNavigate();
   const [parties, setParties] = useState<Party[]>([]);
+  const [publicParties, setPublicParties] = useState<PublicParty[]>([]);
   const [loading, setLoading] = useState(true);
+  const [joining, setJoining] = useState(false);
   const [error, setError] = useState("");
 
   useEffect(() => {
-    api
-      .get<Party[]>("/parties")
-      .then(setParties)
+    Promise.all([
+      api.get<Party[]>("/parties"),
+      publicApi.get<PublicParty[]>("/parties/public"),
+    ])
+      .then(([userParties, pubParties]) => {
+        setParties(userParties);
+        setPublicParties(pubParties);
+      })
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
   }, []);
+
+  const userPartyIds = new Set(parties.map((p) => p.partyId));
+  const unjoinedOpenParties = publicParties.filter((p) => !userPartyIds.has(p.partyId));
+
+  const handleJoinPublic = async (partyId: string) => {
+    setJoining(true);
+    try {
+      await api.post(`/parties/${partyId}/join`);
+      navigate(`/party/${partyId}`);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to join");
+    } finally {
+      setJoining(false);
+    }
+  };
 
   return (
     <div style={styles.page}>
@@ -39,12 +61,45 @@ export default function WatchParties() {
           <img src="/academy-awards-logo.png" alt="98th Academy Awards" style={styles.logo} />
         </div>
 
+        {/* Public Leaderboard banner */}
+        <button
+          className="tap-target"
+          onClick={() => navigate("/leaderboard")}
+          style={styles.leaderboardBanner}
+        >
+          <ChartBar size={20} weight="bold" style={{ color: "var(--gold)" }} />
+          <span style={styles.leaderboardText}>Public Leaderboard</span>
+          <span style={styles.leaderboardArrow}>&rsaquo;</span>
+        </button>
+
         <div style={styles.content}>
           {/* Header */}
           <div style={styles.header}>
             <h1 style={styles.title}>Watch Parties</h1>
             {!loading && <p style={styles.subtitle}>{parties.length} {parties.length === 1 ? "party" : "parties"}</p>}
           </div>
+
+          {/* Open parties the user hasn't joined yet */}
+          {unjoinedOpenParties.map((pub) => (
+            <button
+              key={pub.partyId}
+              className="card card-interactive tap-target"
+              onClick={() => handleJoinPublic(pub.partyId)}
+              disabled={joining}
+              style={{ ...styles.partyRow, marginBottom: "var(--space-4)" }}
+            >
+              <div style={{ ...styles.partyIcon, background: "var(--gold-glow)", border: "1px solid var(--border-gold)" }}>
+                <GlobeSimple size={20} weight="bold" style={{ color: "var(--gold)" }} />
+              </div>
+              <div style={styles.partyInfo}>
+                <p style={styles.partyName}>{pub.name}</p>
+                <p style={styles.partyRole}>
+                  Open to everyone · {pub.memberCount} {pub.memberCount === 1 ? "participant" : "participants"}
+                </p>
+              </div>
+              <span className="badge badge-open" style={{ flexShrink: 0 }}>Join</span>
+            </button>
+          ))}
 
           {error && (
             <p style={{ color: "var(--status-wrong)", fontSize: "var(--text-sm)", textAlign: "center", marginBottom: "var(--space-4)" }}>
@@ -68,25 +123,32 @@ export default function WatchParties() {
             </div>
           ) : (
             <div className="stagger-children" style={{ display: "flex", flexDirection: "column", gap: "var(--space-2)" }}>
-              {parties.map((party) => (
-                <button
-                  key={party.partyId}
-                  className="card card-interactive tap-target"
-                  onClick={() => navigate(`/party/${party.partyId}`)}
-                  style={styles.partyRow}
-                >
-                  <div style={styles.partyIcon}>
-                    <Users size={20} weight="bold" style={{ color: "var(--text-muted)" }} />
-                  </div>
-                  <div style={styles.partyInfo}>
-                    <p style={styles.partyName}>{party.name}</p>
-                    <p style={styles.partyRole}>{party.role === "host" ? "Host" : "Member"}</p>
-                  </div>
-                  {party.role === "host" && (
-                    <Crown size={18} weight="fill" style={{ color: "var(--gold)", flexShrink: 0 }} />
-                  )}
-                </button>
-              ))}
+              {parties.map((party) => {
+                const isOpen = party.isOpen === true;
+                return (
+                  <button
+                    key={party.partyId}
+                    className="card card-interactive tap-target"
+                    onClick={() => navigate(`/party/${party.partyId}`)}
+                    style={styles.partyRow}
+                  >
+                    <div style={isOpen ? { ...styles.partyIcon, background: "var(--gold-glow)", border: "1px solid var(--border-gold)" } : styles.partyIcon}>
+                      {isOpen ? (
+                        <GlobeSimple size={20} weight="bold" style={{ color: "var(--gold)" }} />
+                      ) : (
+                        <Users size={20} weight="bold" style={{ color: "var(--text-muted)" }} />
+                      )}
+                    </div>
+                    <div style={styles.partyInfo}>
+                      <p style={styles.partyName}>{party.name}</p>
+                      <p style={styles.partyRole}>{party.role === "host" ? "Host" : "Member"}</p>
+                    </div>
+                    {party.role === "host" && (
+                      <Crown size={18} weight="fill" style={{ color: "var(--gold)", flexShrink: 0 }} />
+                    )}
+                  </button>
+                );
+              })}
             </div>
           )}
 
@@ -106,7 +168,7 @@ export default function WatchParties() {
 
       {/* Footer */}
       <footer style={styles.footer}>
-        <span style={styles.footerText}>2026</span>
+        <span style={styles.footerText}>&copy; 2026</span>
         <span style={styles.footerDivider} />
         <img src="/alexhacks-logo.png" alt="alexhacks" style={styles.footerLogo} />
       </footer>
@@ -163,6 +225,32 @@ const styles: Record<string, React.CSSProperties> = {
     width: 160,
     height: 160,
     objectFit: "contain",
+  },
+  leaderboardBanner: {
+    display: "flex",
+    alignItems: "center",
+    gap: "var(--space-3)",
+    width: "100%",
+    padding: "var(--space-3) var(--space-4)",
+    marginBottom: "var(--space-6)",
+    background: "var(--gold-glow)",
+    border: "1px solid var(--border-gold)",
+    borderRadius: "var(--radius-lg)",
+    cursor: "pointer",
+    fontFamily: "var(--font-body)",
+  },
+  leaderboardText: {
+    flex: 1,
+    fontSize: "var(--text-base)",
+    fontWeight: "var(--weight-medium)",
+    color: "var(--gold)",
+    textAlign: "left" as const,
+  },
+  leaderboardArrow: {
+    fontSize: "var(--text-xl)",
+    color: "var(--gold)",
+    lineHeight: 1,
+    flexShrink: 0,
   },
   content: {
     paddingBottom: "var(--space-8)",

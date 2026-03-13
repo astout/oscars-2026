@@ -12,6 +12,7 @@ import CeremonyMode from "./pages/CeremonyMode.js";
 import EmceeSettings from "./pages/EmceeSettings.js";
 import ManageBonus from "./pages/ManageBonus.js";
 import Profile from "./pages/Profile.js";
+import PublicLeaderboard from "./pages/PublicLeaderboard.js";
 import PartyLayout from "./components/PartyLayout.js";
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -31,6 +32,7 @@ export default function App() {
   return (
     <Routes>
       <Route path="/auth" element={<Auth />} />
+      <Route path="/leaderboard" element={<PublicLeaderboard />} />
 
       {/* Watch party management */}
       <Route path="/" element={<ProtectedRoute><WatchParties /></ProtectedRoute>} />

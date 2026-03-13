@@ -36,6 +36,12 @@ export class AuthStack extends cdk.Stack {
       authFlows: {
         userSrp: true,
       },
+      readAttributes: new cognito.ClientAttributes()
+        .withStandardAttributes({ email: true })
+        .withCustomAttributes("displayName"),
+      writeAttributes: new cognito.ClientAttributes()
+        .withStandardAttributes({ email: true })
+        .withCustomAttributes("displayName"),
       preventUserExistenceErrors: true,
     });
 

@@ -18,8 +18,10 @@ export interface Party {
   eventId: string;
   name: string;
   hostUserId: string;
-  inviteCode: string;
   allLocked: boolean;
+  isOpen?: boolean;
+  isListed?: boolean;
+  publicParticipation?: boolean;
   createdAt: string;
 }
 
@@ -28,6 +30,7 @@ export interface PartyMember {
   displayName: string;
   role: "host" | "member";
   status: "active" | "pending" | "left";
+  publicOptOut?: boolean;
   joinedAt: string;
 }
 
@@ -64,6 +67,7 @@ export interface BonusEvent {
   question: string;
   options: string[];
   correctAnswer: string | null;
+  minWager: number;
   maxWager: number;
   status: "open" | "locked" | "resolved";
   createdAt: string;
@@ -89,8 +93,23 @@ export interface LeaderboardEntry {
   rank: number;
 }
 
+export interface PublicLeaderboardEntry {
+  userId: string;
+  displayName: string;
+  partyId: string;
+  partyName: string;
+  hostDisplayName: string;
+  categoryPoints: number;
+  bonusPoints: number;
+  totalPoints: number;
+  correctFirst: number;
+  correctSecond: number;
+  rank: number;
+}
+
 // Auth context extracted from Cognito JWT
 export interface AuthUser {
   userId: string;
   email: string;
+  displayName?: string;
 }

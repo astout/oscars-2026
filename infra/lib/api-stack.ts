@@ -91,6 +91,12 @@ export class ApiStack extends cdk.Stack {
       integration,
     });
 
+    httpApi.addRoutes({
+      path: "/api/public/{proxy+}",
+      methods: [apigateway.HttpMethod.GET],
+      integration,
+    });
+
     this.apiUrl = httpApi.apiEndpoint;
 
     new cdk.CfnOutput(this, "ApiUrl", { value: this.apiUrl });

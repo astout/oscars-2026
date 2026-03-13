@@ -45,7 +45,7 @@ Oscar prediction/polling app for the 98th Academy Awards (March 15, 2026).
 npm install
 
 # Infra
-cd infra && npx cdk deploy --all
+cd infra && npx cdk deploy --all --require-approval never
 
 # API (local dev)
 cd api && npm run dev

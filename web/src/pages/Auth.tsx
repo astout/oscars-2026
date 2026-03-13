@@ -1,12 +1,14 @@
 import { useState } from "react";
+import { useNavigate, Navigate } from "react-router-dom";
+import { ChartBar } from "@phosphor-icons/react";
 import { useAuthContext } from "../auth/AuthContext.js";
-import { Navigate } from "react-router-dom";
 
-type AuthView = "sign-in" | "sign-up" | "confirm" | "forgot" | "reset";
+type AuthView = "landing" | "sign-in" | "sign-up" | "confirm" | "forgot" | "reset";
 
 export default function Auth() {
   const auth = useAuthContext();
-  const [view, setView] = useState<AuthView>("sign-in");
+  const navigate = useNavigate();
+  const [view, setView] = useState<AuthView>("landing");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [displayName, setDisplayName] = useState("");
@@ -24,6 +26,63 @@ export default function Auth() {
     return <Navigate to="/" replace />;
   }
 
+  if (view === "landing") {
+    return (
+      <div style={styles.page}>
+        <div style={styles.container}>
+          <div style={styles.card}>
+            <div style={styles.logoWrap}>
+              <img src="/academy-awards-logo.png" alt="98th Academy Awards" style={styles.logo} />
+            </div>
+
+            <p style={styles.landingSubtitle}>Make your picks. Watch the ceremony. See who wins.</p>
+
+            <div style={styles.landingActions}>
+              <button
+                className="btn btn-primary btn-full"
+                onClick={() => setView("sign-in")}
+              >
+                Sign In
+              </button>
+              <button
+                className="btn btn-secondary btn-full"
+                onClick={() => setView("sign-up")}
+              >
+                Create Account
+              </button>
+            </div>
+
+            <div style={styles.landingDivider}>
+              <span style={styles.landingDividerLine} />
+              <span style={styles.landingDividerText}>or</span>
+              <span style={styles.landingDividerLine} />
+            </div>
+
+            <button
+              className="card card-interactive tap-target"
+              onClick={() => navigate("/leaderboard")}
+              style={styles.leaderboardLink}
+            >
+              <div style={styles.leaderboardIcon}>
+                <ChartBar size={20} weight="bold" style={{ color: "var(--gold)" }} />
+              </div>
+              <div style={{ flex: 1 }}>
+                <p style={styles.leaderboardTitle}>Public Leaderboard</p>
+                <p style={styles.leaderboardSub}>See how everyone's doing</p>
+              </div>
+            </button>
+          </div>
+        </div>
+
+        <footer style={styles.footer}>
+          <span style={styles.footerText}>&copy; 2026</span>
+          <span style={styles.footerDivider} />
+          <img src="/alexhacks-logo.png" alt="alexhacks" style={styles.footerLogo} />
+        </footer>
+      </div>
+    );
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -32,9 +91,18 @@ export default function Auth() {
 
     try {
       switch (view) {
-        case "sign-in":
+        case "sign-in": {
           await auth.signIn(email, password);
-          break;
+          // Hard navigate to bypass React state/routing race condition
+          const pending = localStorage.getItem("pendingRedirect");
+          if (pending) {
+            localStorage.removeItem("pendingRedirect");
+            window.location.replace(pending);
+          } else {
+            window.location.replace("/");
+          }
+          return;
+        }
         case "sign-up":
           await auth.signUp({ email, password, displayName });
           setMessage("Check your email for a verification code.");
@@ -42,8 +110,22 @@ export default function Auth() {
           break;
         case "confirm":
           await auth.confirmSignUp(email, code);
-          setMessage("Account verified! Sign in to continue.");
-          setView("sign-in");
+          // Auto sign-in after verification to avoid extra step
+          try {
+            await auth.signIn(email, password);
+            const pending = localStorage.getItem("pendingRedirect");
+            if (pending) {
+              localStorage.removeItem("pendingRedirect");
+              window.location.replace(pending);
+            } else {
+              window.location.replace("/");
+            }
+            return;
+          } catch {
+            // If auto sign-in fails, fall back to manual
+            setMessage("Account verified! Sign in to continue.");
+            setView("sign-in");
+          }
           break;
         case "forgot":
           await auth.forgotPassword(email);
@@ -80,8 +162,37 @@ export default function Auth() {
             <img src="/academy-awards-logo.png" alt="98th Academy Awards" style={styles.logo} />
           </div>
 
-          <form onSubmit={handleSubmit} style={styles.form} autoComplete={view === "sign-in" ? "on" : undefined}>
-            {view === "sign-up" && (
+          {view === "sign-in" && (
+            <form key="sign-in" id="sign-in-form" action="/sign-in" onSubmit={handleSubmit} style={styles.form} autoComplete="on">
+              <input
+                type="email"
+                name="username"
+                placeholder="Email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="input"
+                required
+                autoComplete="username"
+              />
+              <input
+                type="password"
+                name="current-password"
+                placeholder="Password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="input"
+                required
+                minLength={8}
+                autoComplete="current-password"
+              />
+              <button type="submit" className="btn btn-primary btn-full" disabled={loading} style={{ marginTop: "var(--space-2)" }}>
+                {loading ? "..." : "Sign In"}
+              </button>
+            </form>
+          )}
+
+          {view === "sign-up" && (
+            <form key="sign-up" id="sign-up-form" action="/sign-up" onSubmit={handleSubmit} style={styles.form}>
               <input
                 type="text"
                 placeholder="Display name"
@@ -91,39 +202,35 @@ export default function Auth() {
                 required
                 autoComplete="name"
               />
-            )}
+              <input
+                type="email"
+                name="email"
+                placeholder="Email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="input"
+                required
+                autoComplete="email"
+              />
+              <input
+                type="password"
+                name="new-password"
+                placeholder="Password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="input"
+                required
+                minLength={8}
+                autoComplete="new-password"
+              />
+              <button type="submit" className="btn btn-primary btn-full" disabled={loading} style={{ marginTop: "var(--space-2)" }}>
+                {loading ? "..." : "Create Account"}
+              </button>
+            </form>
+          )}
 
-            {view !== "confirm" && view !== "reset" && (
-              <>
-                <input
-                  key={`email-${view}`}
-                  type="email"
-                  name="email"
-                  placeholder="Email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="input"
-                  required
-                  autoComplete={view === "sign-up" ? "email" : "username"}
-                />
-                {view !== "forgot" && (
-                  <input
-                    key={`password-${view}`}
-                    type="password"
-                    name="password"
-                    placeholder="Password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="input"
-                    required
-                    minLength={8}
-                    autoComplete={view === "sign-up" ? "new-password" : "current-password"}
-                  />
-                )}
-              </>
-            )}
-
-            {(view === "confirm" || view === "reset") && (
+          {view === "confirm" && (
+            <form key="confirm" onSubmit={handleSubmit} style={styles.form}>
               <input
                 type="text"
                 placeholder="Verification code"
@@ -133,9 +240,41 @@ export default function Auth() {
                 required
                 autoComplete="one-time-code"
               />
-            )}
+              <button type="submit" className="btn btn-primary btn-full" disabled={loading} style={{ marginTop: "var(--space-2)" }}>
+                {loading ? "..." : "Verify"}
+              </button>
+            </form>
+          )}
 
-            {view === "reset" && (
+          {view === "forgot" && (
+            <form key="forgot" onSubmit={handleSubmit} style={styles.form}>
+              <input
+                type="email"
+                name="email"
+                placeholder="Email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="input"
+                required
+                autoComplete="username"
+              />
+              <button type="submit" className="btn btn-primary btn-full" disabled={loading} style={{ marginTop: "var(--space-2)" }}>
+                {loading ? "..." : "Send Reset Code"}
+              </button>
+            </form>
+          )}
+
+          {view === "reset" && (
+            <form key="reset" onSubmit={handleSubmit} style={styles.form}>
+              <input
+                type="text"
+                placeholder="Verification code"
+                value={code}
+                onChange={(e) => setCode(e.target.value)}
+                className="input"
+                required
+                autoComplete="one-time-code"
+              />
               <input
                 type="password"
                 placeholder="New password"
@@ -146,20 +285,11 @@ export default function Auth() {
                 minLength={8}
                 autoComplete="new-password"
               />
-            )}
-
-            <button type="submit" className="btn btn-primary btn-full" disabled={loading} style={{ marginTop: "var(--space-2)" }}>
-              {loading
-                ? "..."
-                : {
-                    "sign-in": "Sign In",
-                    "sign-up": "Create Account",
-                    confirm: "Verify",
-                    forgot: "Send Reset Code",
-                    reset: "Reset Password",
-                  }[view]}
-            </button>
-          </form>
+              <button type="submit" className="btn btn-primary btn-full" disabled={loading} style={{ marginTop: "var(--space-2)" }}>
+                {loading ? "..." : "Reset Password"}
+              </button>
+            </form>
+          )}
 
           {auth.error && <p style={styles.error}>{auth.error}</p>}
           {message && <p style={styles.message}>{message}</p>}
@@ -173,12 +303,20 @@ export default function Auth() {
                 <button style={styles.link} onClick={() => setView("forgot")}>
                   Forgot password?
                 </button>
+                <button style={styles.link} onClick={() => setView("landing")}>
+                  Back
+                </button>
               </>
             )}
             {view === "sign-up" && (
-              <button style={styles.link} onClick={() => setView("sign-in")}>
-                Already have an account? Sign in
-              </button>
+              <>
+                <button style={styles.link} onClick={() => setView("sign-in")}>
+                  Already have an account? Sign in
+                </button>
+                <button style={styles.link} onClick={() => setView("landing")}>
+                  Back
+                </button>
+              </>
             )}
             {view === "confirm" && (
               <button style={styles.link} onClick={resendCode}>
@@ -195,7 +333,7 @@ export default function Auth() {
       </div>
 
       <footer style={styles.footer}>
-        <span style={styles.footerText}>2026</span>
+        <span style={styles.footerText}>&copy; 2026</span>
         <span style={styles.footerDivider} />
         <img src="/alexhacks-logo.png" alt="alexhacks" style={styles.footerLogo} />
       </footer>
@@ -266,6 +404,65 @@ const styles: Record<string, React.CSSProperties> = {
     cursor: "pointer",
     padding: "var(--space-1)",
     fontFamily: "var(--font-body)",
+  },
+  landingSubtitle: {
+    fontSize: "var(--text-sm)",
+    color: "var(--text-secondary)",
+    textAlign: "center" as const,
+    marginBottom: "var(--space-6)",
+    lineHeight: 1.5,
+  },
+  landingActions: {
+    display: "flex",
+    flexDirection: "column" as const,
+    gap: "var(--space-3)",
+  },
+  landingDivider: {
+    display: "flex",
+    alignItems: "center",
+    gap: "var(--space-3)",
+    margin: "var(--space-5) 0",
+  },
+  landingDividerLine: {
+    flex: 1,
+    height: "0.5px",
+    background: "var(--border)",
+  },
+  landingDividerText: {
+    fontSize: "var(--text-xs)",
+    color: "var(--text-muted)",
+    textTransform: "uppercase" as const,
+    letterSpacing: "var(--tracking-wide)",
+  },
+  leaderboardLink: {
+    display: "flex",
+    alignItems: "center",
+    gap: "var(--space-3)",
+    width: "100%",
+    textAlign: "left" as const,
+    fontFamily: "var(--font-body)",
+    cursor: "pointer",
+  },
+  leaderboardIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: "var(--radius-md)",
+    background: "var(--gold-glow)",
+    border: "1px solid var(--border-gold)",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    flexShrink: 0,
+  },
+  leaderboardTitle: {
+    fontSize: "var(--text-base)",
+    fontWeight: "var(--weight-medium)" as const,
+    color: "var(--text-primary)",
+  },
+  leaderboardSub: {
+    fontSize: "var(--text-sm)",
+    color: "var(--text-muted)",
+    marginTop: 1,
   },
   footer: {
     display: "flex",

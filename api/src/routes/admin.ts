@@ -79,7 +79,6 @@ app.post("/:partyId/categories/:categoryId/up-next", emceeGuard, async (c) => {
   );
 
   await setCategoryUpNext(categoryId, true);
-  await setCategoryLocked(categoryId, true);
 
   const cat = await getCategory(categoryId);
   if (cat) {

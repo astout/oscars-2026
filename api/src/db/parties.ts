@@ -4,6 +4,7 @@ import {
   QueryCommand,
   UpdateCommand,
   DeleteCommand,
+  ScanCommand,
 } from "@aws-sdk/lib-dynamodb";
 import { db, TABLE_NAME } from "./client.js";
 import type { Party, PartyMember } from "../types/index.js";
@@ -219,4 +220,125 @@ export async function renameParty(
       ExpressionAttributeValues: { ":name": name },
     })
   );
+}
+
+export async function getOpenParties(
+  eventId: string
+): Promise<Party[]> {
+  const result = await db.send(
+    new ScanCommand({
+      TableName: TABLE_NAME,
+      FilterExpression: "SK = :sk AND eventId = :eid AND isOpen = :open",
+      ExpressionAttributeValues: {
+        ":sk": "METADATA",
+        ":eid": eventId,
+        ":open": true,
+      },
+    })
+  );
+  return (result.Items || []) as Party[];
+}
+
+export async function getPartiesWithPublicParticipation(
+  eventId: string
+): Promise<Party[]> {
+  const result = await db.send(
+    new ScanCommand({
+      TableName: TABLE_NAME,
+      FilterExpression:
+        "SK = :sk AND eventId = :eid AND (publicParticipation = :pub OR attribute_not_exists(publicParticipation))",
+      ExpressionAttributeValues: {
+        ":sk": "METADATA",
+        ":eid": eventId,
+        ":pub": true,
+      },
+    })
+  );
+  return (result.Items || []) as Party[];
+}
+
+export async function updatePartySettings(
+  partyId: string,
+  settings: {
+    publicParticipation?: boolean;
+    isListed?: boolean;
+    isOpen?: boolean;
+  }
+): Promise<void> {
+  const expressions: string[] = [];
+  const values: Record<string, unknown> = {};
+
+  if (settings.publicParticipation !== undefined) {
+    expressions.push("publicParticipation = :pp");
+    values[":pp"] = settings.publicParticipation;
+  }
+  if (settings.isListed !== undefined) {
+    expressions.push("isListed = :il");
+    values[":il"] = settings.isListed;
+  }
+  if (settings.isOpen !== undefined) {
+    expressions.push("isOpen = :io");
+    values[":io"] = settings.isOpen;
+  }
+
+  if (expressions.length === 0) return;
+
+  await db.send(
+    new UpdateCommand({
+      TableName: TABLE_NAME,
+      Key: { PK: `PARTY#${partyId}`, SK: "METADATA" },
+      UpdateExpression: `SET ${expressions.join(", ")}`,
+      ExpressionAttributeValues: values,
+    })
+  );
+}
+
+export async function getListedParties(
+  eventId: string
+): Promise<Party[]> {
+  const result = await db.send(
+    new ScanCommand({
+      TableName: TABLE_NAME,
+      FilterExpression: "SK = :sk AND eventId = :eid AND isListed = :listed",
+      ExpressionAttributeValues: {
+        ":sk": "METADATA",
+        ":eid": eventId,
+        ":listed": true,
+      },
+    })
+  );
+  return (result.Items || []) as Party[];
+}
+
+export async function updateMemberPublicOptOut(
+  partyId: string,
+  userId: string,
+  optOut: boolean
+): Promise<void> {
+  await db.send(
+    new UpdateCommand({
+      TableName: TABLE_NAME,
+      Key: { PK: `PARTY#${partyId}`, SK: `MEMBER#${userId}` },
+      UpdateExpression: "SET publicOptOut = :opt",
+      ExpressionAttributeValues: { ":opt": optOut },
+    })
+  );
+}
+
+export async function getMemberCount(partyId: string): Promise<number> {
+  const result = await db.send(
+    new QueryCommand({
+      TableName: TABLE_NAME,
+      KeyConditionExpression: "PK = :pk AND begins_with(SK, :sk)",
+      FilterExpression: "#status = :active",
+      ExpressionAttributeNames: { "#status": "status" },
+      ExpressionAttributeValues: {
+        ":pk": `PARTY#${partyId}`,
+        ":sk": "MEMBER#",
+        ":active": "active",
+      },
+      Select: "COUNT",
+    })
+  );
+  return result.Count || 0;
 }

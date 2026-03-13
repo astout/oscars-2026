@@ -6,8 +6,8 @@ const app = new Hono();
 
 // Get or create current user profile
 app.get("/me", async (c) => {
-  const { userId, email } = getUser(c);
-  const user = await ensureUser(userId, email);
+  const { userId, email, displayName } = getUser(c);
+  const user = await ensureUser(userId, email, displayName);
   return c.json(user);
 });
 
