@@ -302,7 +302,7 @@ app.post("/:partyId/bonus/:eventId/broadcast-up-next", emceeGuard, async (c) => 
 
   // Notify all parties
   await Promise.all(
-    allParties.map((p) => createNotification(p.partyId, "wager-locked", `Wager closing soon: ${bonus.question}`, "/bonus"))
+    allParties.filter((p) => p.emceeSync !== false).map((p) => createNotification(p.partyId, "wager-locked", `Wager closing soon: ${bonus.question}`, "/bonus"))
   ).catch(() => {});
 
   return c.json({ upNext: true });
@@ -356,7 +356,7 @@ app.post("/:partyId/bonus/:eventId/broadcast-lock", emceeGuard, async (c) => {
   // Notify all parties
   const allParties = await getAllEventParties("oscars_2026");
   await Promise.all(
-    allParties.map((p) => createNotification(p.partyId, "wager-locked", `Wager locked: ${bonus.question}`, "/bonus"))
+    allParties.filter((p) => p.emceeSync !== false).map((p) => createNotification(p.partyId, "wager-locked", `Wager locked: ${bonus.question}`, "/bonus"))
   ).catch(() => {});
 
   return c.json({ status: "locked", broadcastCount: count });
@@ -380,7 +380,7 @@ app.post("/:partyId/bonus/:eventId/broadcast-unlock", emceeGuard, async (c) => {
 
   const allParties = await getAllEventParties("oscars_2026");
   await Promise.all(
-    allParties.map((p) => createNotification(p.partyId, "wager-unlocked", `Wager reopened: ${bonus.question}`, "/bonus"))
+    allParties.filter((p) => p.emceeSync !== false).map((p) => createNotification(p.partyId, "wager-unlocked", `Wager reopened: ${bonus.question}`, "/bonus"))
   ).catch(() => {});
 
   return c.json({ status: "open", broadcastCount: count });
@@ -412,7 +412,7 @@ app.post("/:partyId/bonus/:eventId/broadcast-resolve", emceeGuard, async (c) => 
 
   // Personalized notifications per user
   const allParties = await getAllEventParties("oscars_2026");
-  const notifyWork = allParties.map(async (party) => {
+  const notifyWork = allParties.filter((p) => p.emceeSync !== false).map(async (party) => {
     const [partyBonuses, partyWagers, members] = await Promise.all([
       getBonusEvents(party.partyId),
       getUserWagers(party.partyId, "").catch(() => []), // fallback

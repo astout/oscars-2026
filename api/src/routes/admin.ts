@@ -8,8 +8,8 @@ import { getMembers, getParty } from "../db/parties.js";
 
 const app = new Hono();
 
-// Get all party IDs for the event (lightweight scan, <50 parties expected)
-async function getAllPartyIds(): Promise<string[]> {
+// Get all party IDs for the event that follow the global emcee (skip self-emceed)
+async function getSyncedPartyIds(): Promise<string[]> {
   const { ScanCommand } = await import("@aws-sdk/lib-dynamodb");
   const { db, TABLE_NAME } = await import("../db/client.js");
 
@@ -21,10 +21,13 @@ async function getAllPartyIds(): Promise<string[]> {
         ":sk": "METADATA",
         ":eid": "oscars_2026",
       },
-      ProjectionExpression: "partyId",
+      ProjectionExpression: "partyId, emceeSync",
     })
   );
-  return (result.Items || []).map((i: any) => i.partyId).filter(Boolean);
+  return (result.Items || [])
+    .filter((i: any) => i.emceeSync !== false)
+    .map((i: any) => i.partyId)
+    .filter(Boolean);
 }
 
 async function notifyAllParties(
@@ -32,7 +35,7 @@ async function notifyAllParties(
   message: string,
   linkTo?: string,
 ) {
-  const partyIds = await getAllPartyIds();
+  const partyIds = await getSyncedPartyIds();
   await Promise.all(
     partyIds.map((pid) => createNotification(pid, type, message, linkTo))
   );
@@ -62,7 +65,7 @@ app.post("/:partyId/categories/:categoryId/winner", globalEmceeGuard, async (c) 
   ]);
   const winner = nominees.find((n) => n.nomineeId === winnerId);
   if (cat && winner) {
-    const partyIds = await getAllPartyIds();
+    const partyIds = await getSyncedPartyIds();
     const notifyWork = partyIds.map(async (pid) => {
       const [picks, members] = await Promise.all([
         getAllPicks(pid),
