@@ -38,14 +38,14 @@ const app = new Hono();
 
 // Create party
 app.post("/", async (c) => {
-  const { userId, email } = getUser(c);
+  const { userId, email, displayName } = getUser(c);
   const { name } = await c.req.json();
 
   if (!name?.trim()) {
     return c.json({ error: "Name is required" }, 400);
   }
 
-  const user = await ensureUser(userId, email);
+  const user = await ensureUser(userId, email, displayName);
 
   const party: Party = {
     partyId: randomUUID(),
@@ -164,7 +164,7 @@ app.get("/:partyId/members", memberGuard, async (c) => {
 
 // Unified join endpoint
 app.post("/:partyId/join", async (c) => {
-  const { userId, email } = getUser(c);
+  const { userId, email, displayName } = getUser(c);
   const partyId = param(c, "partyId");
   const body = await c.req.json().catch(() => ({}));
   const code = body.code ? (body.code as string).toLowerCase() : undefined;
@@ -202,7 +202,7 @@ app.post("/:partyId/join", async (c) => {
     return c.json({ status: existing.status, partyId });
   }
 
-  const user = await ensureUser(userId, email);
+  const user = await ensureUser(userId, email, displayName);
 
   try {
     await addMember(partyId, userId, user.displayName, joinStatus);
