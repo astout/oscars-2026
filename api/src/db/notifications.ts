@@ -4,7 +4,7 @@ import { randomUUID } from "crypto";
 
 export interface Notification {
   notificationId: string;
-  type: "category-awarded" | "category-up-next" | "leaderboard-change";
+  type: "category-awarded" | "category-up-next" | "leaderboard-change" | "wager-locked" | "wager-unlocked" | "wager-resolved";
   message: string;
   linkTo?: string;
   createdAt: string;

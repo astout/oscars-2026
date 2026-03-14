@@ -14,6 +14,7 @@ import {
 } from "../db/bonus.js";
 import { getEvent } from "../db/events.js";
 import { getAllEventParties } from "../db/parties.js";
+import { createNotification } from "../db/notifications.js";
 import { getUser } from "../middleware/auth.js";
 import { memberGuard, hostGuard } from "../middleware/party-access.js";
 import { emceeGuard } from "../middleware/emcee-access.js";
@@ -248,6 +249,12 @@ app.post("/:partyId/bonus/:eventId/broadcast-lock", emceeGuard, async (c) => {
     ? await broadcastBonusAction(partyId, "oscars_2026", bonus.question, lockBonusEvent)
     : 0;
 
+  // Notify all parties
+  const allParties = await getAllEventParties("oscars_2026");
+  await Promise.all(
+    allParties.map((p) => createNotification(p.partyId, "wager-locked", `Wager locked: ${bonus.question}`, "/bonus"))
+  ).catch(() => {});
+
   return c.json({ status: "locked", broadcastCount: count });
 });
 
@@ -266,6 +273,11 @@ app.post("/:partyId/bonus/:eventId/broadcast-unlock", emceeGuard, async (c) => {
   const count = event
     ? await broadcastBonusAction(partyId, "oscars_2026", bonus.question, unlockBonusEvent)
     : 0;
+
+  const allParties = await getAllEventParties("oscars_2026");
+  await Promise.all(
+    allParties.map((p) => createNotification(p.partyId, "wager-unlocked", `Wager reopened: ${bonus.question}`, "/bonus"))
+  ).catch(() => {});
 
   return c.json({ status: "open", broadcastCount: count });
 });
@@ -293,6 +305,14 @@ app.post("/:partyId/bonus/:eventId/broadcast-resolve", emceeGuard, async (c) => 
         (pid, eid) => resolveBonusEvent(pid, eid, correctAnswer)
       )
     : 0;
+
+  const allParties = await getAllEventParties("oscars_2026");
+  const resolveMsg = correctAnswer === "__none__"
+    ? `Wager resolved (no winner): ${bonus.question}`
+    : `Wager resolved: ${bonus.question}`;
+  await Promise.all(
+    allParties.map((p) => createNotification(p.partyId, "wager-resolved", resolveMsg, "/bonus"))
+  ).catch(() => {});
 
   return c.json({ status: "resolved", correctAnswer, broadcastCount: count });
 });

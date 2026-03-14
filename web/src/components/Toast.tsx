@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Trophy, Lightning, Crown, X } from "@phosphor-icons/react";
+import { Trophy, Lightning, Crown, X, Lock, LockOpen, Sparkle } from "@phosphor-icons/react";
 import type { AppNotification } from "../hooks/useNotifications.js";
 
 const TOAST_DURATION = 8000;
@@ -64,7 +64,13 @@ function ToastCard({ toast, onDismiss, partyId }: { toast: ToastItem; onDismiss:
     ? <Trophy size={22} weight="fill" style={{ color: "var(--gold-bright)" }} />
     : toast.type === "category-up-next"
       ? <Lightning size={22} weight="fill" style={{ color: "var(--gold)" }} />
-      : <Crown size={22} weight="fill" style={{ color: "var(--gold)" }} />;
+      : toast.type === "wager-locked"
+        ? <Lock size={22} weight="fill" style={{ color: "var(--gold)" }} />
+        : toast.type === "wager-unlocked"
+          ? <LockOpen size={22} weight="fill" style={{ color: "var(--gold)" }} />
+          : toast.type === "wager-resolved"
+            ? <Sparkle size={22} weight="fill" style={{ color: "var(--gold-bright)" }} />
+            : <Crown size={22} weight="fill" style={{ color: "var(--gold)" }} />;
 
   const handleClick = () => {
     if (toast.linkTo && partyId) {
