@@ -25,13 +25,15 @@ interface BonusEvent {
 interface BonusCardProps {
   event: BonusEvent;
   onWager: (eventId: string, prediction: string, wagerAmount: number) => Promise<void>;
+  onCancelWager?: (eventId: string) => Promise<void>;
 }
 
-export default function BonusCard({ event, onWager }: BonusCardProps) {
+export default function BonusCard({ event, onWager, onCancelWager }: BonusCardProps) {
   const minWager = event.minWager || 1;
   const [selectedPrediction, setSelectedPrediction] = useState<string | null>(null);
   const [selectedWager, setSelectedWager] = useState<number>(minWager);
   const [submitting, setSubmitting] = useState(false);
+  const [cancelling, setCancelling] = useState(false);
 
   const wagerAmounts = Array.from({ length: event.maxWager - minWager + 1 }, (_, i) => i + minWager);
 
@@ -154,24 +156,43 @@ export default function BonusCard({ event, onWager }: BonusCardProps) {
 
       {/* Already wagered (open or locked, but user already placed a wager) */}
       {event.status !== "resolved" && event.userWager && (
-        <div
-          style={{
-            marginTop: "var(--space-4)",
-            display: "flex",
-            alignItems: "center",
-            gap: "var(--space-2)",
-            padding: "var(--space-3)",
-            background: "var(--gold-glow)",
-            borderRadius: "var(--radius-md)",
-          }}
-        >
-          <Check size={16} weight="bold" style={{ color: "var(--gold)" }} />
-          <span style={{ fontSize: "var(--text-sm)", color: "var(--text-primary)" }}>
-            Your pick: <strong>{event.userWager.prediction}</strong>
-          </span>
-          <span style={{ fontSize: "var(--text-sm)", color: "var(--text-muted)", marginLeft: "auto" }}>
-            Wagered: {event.userWager.wagerAmount} pts
-          </span>
+        <div style={{ marginTop: "var(--space-4)" }}>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "var(--space-2)",
+              padding: "var(--space-3)",
+              background: "var(--gold-glow)",
+              borderRadius: "var(--radius-md)",
+            }}
+          >
+            <Check size={16} weight="bold" style={{ color: "var(--gold)" }} />
+            <span style={{ fontSize: "var(--text-sm)", color: "var(--text-primary)" }}>
+              Your pick: <strong>{event.userWager.prediction}</strong>
+            </span>
+            <span style={{ fontSize: "var(--text-sm)", color: "var(--text-muted)", marginLeft: "auto" }}>
+              Wagered: {event.userWager.wagerAmount} pts
+            </span>
+          </div>
+          {event.status === "open" && onCancelWager && (
+            <button
+              className="btn btn-ghost btn-sm"
+              onClick={async () => {
+                setCancelling(true);
+                try {
+                  await onCancelWager(event.eventId);
+                } finally {
+                  setCancelling(false);
+                }
+              }}
+              disabled={cancelling}
+              style={{ marginTop: "var(--space-2)" }}
+            >
+              <X size={14} weight="bold" />
+              {cancelling ? "Cancelling..." : "Cancel wager"}
+            </button>
+          )}
         </div>
       )}
 

@@ -214,6 +214,15 @@ export default function BonusEvents() {
     );
   };
 
+  const handleCancelWager = async (eventId: string) => {
+    await api.delete(`/parties/${partyId}/bonus/${eventId}/wager`);
+    setEvents((prev) =>
+      prev.map((ev) =>
+        ev.eventId === eventId ? { ...ev, userWager: null } : ev
+      )
+    );
+  };
+
   if (loading) {
     return (
       <div className="page">
@@ -278,7 +287,7 @@ export default function BonusEvents() {
       <div className="page-content">
         <div className="stagger-children" style={{ display: "flex", flexDirection: "column", gap: "var(--space-4)" }}>
           {events.map((event) => (
-            <BonusCard key={event.eventId} event={event} onWager={handleWager} />
+            <BonusCard key={event.eventId} event={event} onWager={handleWager} onCancelWager={handleCancelWager} />
           ))}
         </div>
       </div>
