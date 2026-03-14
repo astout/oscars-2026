@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate, Navigate } from "react-router-dom";
 import { ChartBar } from "@phosphor-icons/react";
 import { useAuthContext } from "../auth/AuthContext.js";
+import PasswordInput from "../components/PasswordInput.js";
 
 type AuthView = "landing" | "sign-in" | "sign-up" | "confirm" | "forgot" | "reset";
 
@@ -181,13 +182,11 @@ export default function Auth() {
                 required
                 autoComplete="username"
               />
-              <input
-                type="password"
+              <PasswordInput
                 name="current-password"
                 placeholder="Password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="input"
                 required
                 minLength={8}
                 autoComplete="current-password"
@@ -219,13 +218,11 @@ export default function Auth() {
                 required
                 autoComplete="email"
               />
-              <input
-                type="password"
+              <PasswordInput
                 name="new-password"
                 placeholder="Password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="input"
                 required
                 minLength={8}
                 autoComplete="new-password"
@@ -282,12 +279,10 @@ export default function Auth() {
                 required
                 autoComplete="one-time-code"
               />
-              <input
-                type="password"
+              <PasswordInput
                 placeholder="New password"
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
-                className="input"
                 required
                 minLength={8}
                 autoComplete="new-password"

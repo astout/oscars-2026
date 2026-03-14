@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { SignOut, Check, CaretLeft } from "@phosphor-icons/react";
 import { api } from "../api/client.js";
+import PasswordInput from "../components/PasswordInput.js";
 import { useAuthContext } from "../auth/AuthContext.js";
 import OscarStatuette from "../components/OscarStatuette.js";
 
@@ -143,9 +144,7 @@ export default function Profile() {
         {/* Change Password */}
         <form onSubmit={handlePasswordChange} style={styles.section}>
           <label style={styles.label}>Change Password</label>
-          <input
-            className="input"
-            type="password"
+          <PasswordInput
             placeholder="Current password"
             value={oldPassword}
             onChange={(e) => setOldPassword(e.target.value)}
@@ -153,9 +152,7 @@ export default function Profile() {
             minLength={8}
             autoComplete="current-password"
           />
-          <input
-            className="input"
-            type="password"
+          <PasswordInput
             placeholder="New password"
             value={newPassword}
             onChange={(e) => setNewPassword(e.target.value)}
