@@ -123,6 +123,27 @@ app.get("/:partyId", memberGuard, async (c) => {
   });
 });
 
+// Get categories for a party (merges overrides for self-emceed parties)
+app.get("/:partyId/categories", memberGuard, async (c) => {
+  const partyId = param(c, "partyId");
+  const party = await getParty(partyId);
+
+  const { getCategories, getNominees, getPartyCategoriesWithOverrides } = await import("../db/categories.js");
+
+  const categories = party?.emceeSync === false
+    ? await getPartyCategoriesWithOverrides(partyId)
+    : await getCategories();
+
+  const withNominees = await Promise.all(
+    categories.map(async (cat) => ({
+      ...cat,
+      nominees: await getNominees(cat.categoryId),
+    }))
+  );
+
+  return c.json(withNominees);
+});
+
 // List members
 app.get("/:partyId/members", memberGuard, async (c) => {
   const members = await getMembers(param(c, "partyId"));

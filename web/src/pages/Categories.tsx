@@ -55,6 +55,7 @@ export default function Categories() {
   // Emcee state
   const [canEmcee, setCanEmcee] = useState(false);
   const [isGlobalEmcee, setIsGlobalEmcee] = useState(false);
+  const [isSelfEmcee, setIsSelfEmcee] = useState(false);
   const [emceeMode, setEmceeMode] = useState(() => localStorage.getItem(EMCEE_MODE_KEY) === "true");
   const [allLocked, setAllLocked] = useState(false);
   const [expandedId, setExpandedId] = useState<string | null>(null);
@@ -88,16 +89,18 @@ export default function Categories() {
     setLoading(true);
     setError("");
     try {
-      const [cats, picks, party] = await Promise.all([
-        api.get<Category[]>("/categories"),
+      const party = await api.get<{ isEmcee?: boolean; isTemplateParty?: boolean; emceeSync?: boolean; allLocked?: boolean }>(`/parties/${partyId}`);
+      const selfEmcee = party.emceeSync === false;
+      const catEndpoint = selfEmcee ? `/parties/${partyId}/categories` : "/categories";
+      const [cats, picks] = await Promise.all([
+        api.get<Category[]>(catEndpoint),
         api.get<Pick[]>(`/parties/${partyId}/picks`),
-        api.get<{ isEmcee?: boolean; isTemplateParty?: boolean; emceeSync?: boolean; allLocked?: boolean }>(`/parties/${partyId}`),
       ]);
       setCategories(cats.sort((a, b) => a.displayOrder - b.displayOrder));
       setPicksMap(new Map(picks.map((p) => [p.categoryId, p])));
-      // Can emcee if: global emcee on template party, OR host who opted to self-emcee
-      setCanEmcee(!!party.isEmcee || party.emceeSync === false);
+      setCanEmcee(!!party.isEmcee || selfEmcee);
       setIsGlobalEmcee(!!party.isEmcee);
+      setIsSelfEmcee(selfEmcee);
       setAllLocked(!!party.allLocked);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to load categories");
@@ -153,7 +156,8 @@ export default function Categories() {
     const clearing = nomineeId === currentWinnerId;
     setActionLoading(`winner-${categoryId}`);
     try {
-      await api.post(`/parties/${partyId}/categories/${categoryId}/winner`, { winnerId: clearing ? null : nomineeId });
+      const winnerRoute = isSelfEmcee ? "party-winner" : "winner";
+      await api.post(`/parties/${partyId}/categories/${categoryId}/${winnerRoute}`, { winnerId: clearing ? null : nomineeId });
       setCategories((prev) =>
         prev.map((c) =>
           c.categoryId === categoryId
@@ -175,10 +179,11 @@ export default function Categories() {
     if (!partyId) return;
     setActionLoading(`upnext-${categoryId}`);
     try {
+      const upNextRoute = isSelfEmcee ? "party-up-next" : "up-next";
       if (isUpNext) {
-        await api.delete(`/parties/${partyId}/categories/${categoryId}/up-next`);
+        await api.delete(`/parties/${partyId}/categories/${categoryId}/${upNextRoute}`);
       } else {
-        await api.post(`/parties/${partyId}/categories/${categoryId}/up-next`);
+        await api.post(`/parties/${partyId}/categories/${categoryId}/${upNextRoute}`);
       }
       setCategories((prev) => prev.map((c) => ({ ...c, upNext: c.categoryId === categoryId ? !isUpNext : false })));
     } catch (err) {
@@ -317,16 +322,14 @@ export default function Categories() {
                       <div style={styles.catActions}>
                         {!cat.winnerId && (
                           <>
-                            {isGlobalEmcee && (
-                              <button
-                                className="btn btn-ghost btn-sm"
-                                onClick={(e) => { e.stopPropagation(); setUpNext(cat.categoryId, cat.upNext); }}
-                                disabled={actionLoading === `upnext-${cat.categoryId}`}
-                                style={{ color: cat.upNext ? "var(--gold)" : "var(--text-faint)" }}
-                              >
-                                <Lightning size={16} weight={cat.upNext ? "fill" : "regular"} />
-                              </button>
-                            )}
+                            <button
+                              className="btn btn-ghost btn-sm"
+                              onClick={(e) => { e.stopPropagation(); setUpNext(cat.categoryId, cat.upNext); }}
+                              disabled={actionLoading === `upnext-${cat.categoryId}`}
+                              style={{ color: cat.upNext ? "var(--gold)" : "var(--text-faint)" }}
+                            >
+                              <Lightning size={16} weight={cat.upNext ? "fill" : "regular"} />
+                            </button>
                             <button
                               className="btn btn-ghost btn-sm"
                               onClick={(e) => { e.stopPropagation(); toggleCategoryLock(cat); }}
@@ -337,11 +340,11 @@ export default function Categories() {
                             </button>
                           </>
                         )}
-                        {isGlobalEmcee && (isExpanded ? <CaretUp size={16} style={{ color: "var(--text-muted)" }} /> : <CaretDown size={16} style={{ color: "var(--text-muted)" }} />)}
+                        {isExpanded ? <CaretUp size={16} style={{ color: "var(--text-muted)" }} /> : <CaretDown size={16} style={{ color: "var(--text-muted)" }} />}
                       </div>
                     </button>
 
-                    {isExpanded && isGlobalEmcee && (
+                    {isExpanded && (
                       <div style={styles.nominees}>
                         {cat.nominees
                           .sort((a, b) => a.displayOrder - b.displayOrder)

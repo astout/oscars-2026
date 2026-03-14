@@ -1,10 +1,10 @@
 import { Hono } from "hono";
-import { setWinner, clearWinner, setCategoryLocked, setCategoryUpNext, getCategory, getNominees, getCategories } from "../db/categories.js";
+import { setWinner, clearWinner, setCategoryLocked, setCategoryUpNext, getCategory, getNominees, getCategories, setCategoryOverride, getCategoryOverrides } from "../db/categories.js";
 import { emceeGuard, globalEmceeGuard } from "../middleware/emcee-access.js";
 import { param } from "../middleware/params.js";
 import { createNotification } from "../db/notifications.js";
 import { getAllPicks } from "../db/picks.js";
-import { getMembers } from "../db/parties.js";
+import { getMembers, getParty } from "../db/parties.js";
 
 const app = new Hono();
 
@@ -118,16 +118,114 @@ app.delete("/:partyId/categories/:categoryId/up-next", globalEmceeGuard, async (
   return c.json({ upNext: false });
 });
 
-// Lock single category (emcee only)
+// Lock single category (emcee — global writes shared, self-emcee writes override)
 app.post("/:partyId/categories/:categoryId/lock", emceeGuard, async (c) => {
-  await setCategoryLocked(param(c, "categoryId"), true);
+  const partyId = param(c, "partyId");
+  const categoryId = param(c, "categoryId");
+  const party = await getParty(partyId);
+  if (party?.emceeSync === false) {
+    await setCategoryOverride(partyId, categoryId, { locked: true });
+  } else {
+    await setCategoryLocked(categoryId, true);
+  }
   return c.json({ locked: true });
 });
 
-// Unlock single category (emcee only)
+// Unlock single category
 app.post("/:partyId/categories/:categoryId/unlock", emceeGuard, async (c) => {
-  await setCategoryLocked(param(c, "categoryId"), false);
+  const partyId = param(c, "partyId");
+  const categoryId = param(c, "categoryId");
+  const party = await getParty(partyId);
+  if (party?.emceeSync === false) {
+    await setCategoryOverride(partyId, categoryId, { locked: false });
+  } else {
+    await setCategoryLocked(categoryId, false);
+  }
   return c.json({ locked: false });
+});
+
+// Self-emcee: set winner (writes to party override, not shared category)
+app.post("/:partyId/categories/:categoryId/party-winner", emceeGuard, async (c) => {
+  const partyId = param(c, "partyId");
+  const categoryId = param(c, "categoryId");
+  const { winnerId } = await c.req.json();
+
+  const party = await getParty(partyId);
+  if (!party || party.emceeSync !== false) {
+    return c.json({ error: "This route is for self-emceed parties only" }, 400);
+  }
+
+  if (winnerId === null) {
+    await setCategoryOverride(partyId, categoryId, { winnerId: null, resolvedAt: null, locked: true });
+    return c.json({ categoryId, winnerId: null });
+  }
+
+  await setCategoryOverride(partyId, categoryId, {
+    winnerId,
+    resolvedAt: new Date().toISOString(),
+    upNext: false,
+  });
+
+  // Personalized notifications for this party only
+  const [cat, nominees] = await Promise.all([getCategory(categoryId), getNominees(categoryId)]);
+  const winner = nominees.find((n) => n.nomineeId === winnerId);
+  if (cat && winner) {
+    const [picks, members] = await Promise.all([getAllPicks(partyId), getMembers(partyId)]);
+    const picksByUser = new Map(picks.filter((p) => p.categoryId === categoryId).map((p) => [p.userId, p]));
+    Promise.all(
+      members.filter((m) => m.status === "active").map((m) => {
+        const pick = picksByUser.get(m.userId);
+        let pts = 0;
+        if (pick?.pick1NomineeId === winnerId) pts = 5;
+        else if (pick?.pick2NomineeId === winnerId) pts = 3;
+        const ptsText = pts > 0 ? `You earned +${pts} pts!` : pick ? "No points this time." : "You didn't pick this one.";
+        return createNotification(partyId, "category-awarded", `${winner.name} wins ${cat.name}! ${ptsText}`, "/categories", m.userId);
+      })
+    ).catch(() => {});
+  }
+
+  return c.json({ categoryId, winnerId });
+});
+
+// Self-emcee: set up-next (party override)
+app.post("/:partyId/categories/:categoryId/party-up-next", emceeGuard, async (c) => {
+  const partyId = param(c, "partyId");
+  const categoryId = param(c, "categoryId");
+
+  const party = await getParty(partyId);
+  if (!party || party.emceeSync !== false) {
+    return c.json({ error: "This route is for self-emceed parties only" }, 400);
+  }
+
+  // Clear other up-next overrides
+  const overrides = await getCategoryOverrides(partyId);
+  await Promise.all(
+    overrides.filter((o) => o.upNext && o.categoryId !== categoryId)
+      .map((o) => setCategoryOverride(partyId, o.categoryId, { upNext: false }))
+  );
+
+  await setCategoryOverride(partyId, categoryId, { upNext: true });
+
+  const cat = await getCategory(categoryId);
+  if (cat) {
+    createNotification(partyId, "category-up-next", `${cat.name} is up next — make your picks!`, "/categories").catch(() => {});
+  }
+
+  return c.json({ categoryId, upNext: true });
+});
+
+// Self-emcee: clear up-next (party override)
+app.delete("/:partyId/categories/:categoryId/party-up-next", emceeGuard, async (c) => {
+  const partyId = param(c, "partyId");
+  const categoryId = param(c, "categoryId");
+
+  const party = await getParty(partyId);
+  if (!party || party.emceeSync !== false) {
+    return c.json({ error: "This route is for self-emceed parties only" }, 400);
+  }
+
+  await setCategoryOverride(partyId, categoryId, { upNext: false });
+  return c.json({ upNext: false });
 });
 
 export default app;

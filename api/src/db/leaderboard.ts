@@ -4,8 +4,8 @@ import type {
   LeaderboardEntry,
   PublicLeaderboardEntry,
 } from "../types/index.js";
-import { getMembers, getPartiesWithPublicParticipation } from "./parties.js";
-import { getCategories } from "./categories.js";
+import { getMembers, getParty, getPartiesWithPublicParticipation } from "./parties.js";
+import { getCategories, getPartyCategoriesWithOverrides } from "./categories.js";
 import { getAllPicks } from "./picks.js";
 import { getBonusEvents, getWagers } from "./bonus.js";
 import { getUser } from "./users.js";
@@ -28,10 +28,11 @@ function assignRanks(entries: { totalPoints: number; correctFirst: number; rank:
 // Core scoring logic — takes pre-fetched members to avoid redundant DB calls
 async function scorePartyMembers(
   partyId: string,
-  activeMembers: PartyMember[]
+  activeMembers: PartyMember[],
+  isSelfEmcee = false,
 ): Promise<LeaderboardEntry[]> {
   const [categories, picks, bonusEvents, wagers] = await Promise.all([
-    getCategories(),
+    isSelfEmcee ? getPartyCategoriesWithOverrides(partyId) : getCategories(),
     getAllPicks(partyId),
     getBonusEvents(partyId),
     getWagers(partyId),
@@ -105,9 +106,9 @@ async function scorePartyMembers(
 export async function computeLeaderboard(
   partyId: string
 ): Promise<LeaderboardEntry[]> {
-  const members = await getMembers(partyId);
+  const [members, party] = await Promise.all([getMembers(partyId), getParty(partyId)]);
   const activeMembers = members.filter((m) => m.status === "active");
-  const entries = await scorePartyMembers(partyId, activeMembers);
+  const entries = await scorePartyMembers(partyId, activeMembers, party?.emceeSync === false);
   assignRanks(entries);
   return entries;
 }
