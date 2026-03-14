@@ -202,30 +202,24 @@ export default function Categories() {
 
         {/* Emcee mode toggle */}
         {canEmcee && (
-          <button
-            className="tap-target"
-            onClick={toggleEmceeMode}
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: "var(--space-2)",
-              width: "100%",
-              padding: "var(--space-2) var(--space-4)",
-              marginTop: "var(--space-4)",
-              background: emceeMode ? "var(--gold)" : "transparent",
-              border: emceeMode ? "none" : "1px solid var(--border-gold)",
-              borderRadius: "var(--radius-pill)",
-              cursor: "pointer",
-              fontFamily: "var(--font-body)",
-              fontSize: "var(--text-sm)",
-              fontWeight: "var(--weight-medium)" as unknown as number,
-              color: emceeMode ? "var(--text-on-gold)" : "var(--gold)",
-            }}
-          >
-            <Microphone size={16} weight="bold" />
-            {emceeMode ? "Emcee Mode" : "Switch to Emcee Mode"}
-          </button>
+          <div style={{ display: "flex", justifyContent: "center", marginTop: "var(--space-4)" }}>
+            <button
+              className="tap-target"
+              onClick={toggleEmceeMode}
+              style={{
+                display: "flex", alignItems: "center", gap: "var(--space-2)",
+                padding: "var(--space-2) var(--space-5)",
+                background: emceeMode ? "var(--gold)" : "transparent",
+                border: emceeMode ? "none" : "1px solid var(--border-gold)",
+                borderRadius: "var(--radius-pill)", cursor: "pointer", fontFamily: "var(--font-body)",
+                fontSize: "var(--text-sm)", fontWeight: "var(--weight-medium)" as unknown as number,
+                color: emceeMode ? "var(--text-on-gold)" : "var(--gold)",
+              }}
+            >
+              <Microphone size={16} weight="bold" />
+              {emceeMode ? "Emcee Mode" : "Switch to Emcee Mode"}
+            </button>
+          </div>
         )}
 
         {!showEmcee && (

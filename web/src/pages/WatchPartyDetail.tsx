@@ -214,7 +214,8 @@ export default function WatchPartyDetail() {
               </button>
             )}
 
-            {/* Be the Emcee toggle */}
+            {/* Be the Emcee toggle — hide if already global emcee on template party */}
+            {!(party.isEmcee && party.isTemplateParty) && (
             <div style={{ marginTop: "var(--space-2)", paddingTop: "var(--space-3)", borderTop: "0.5px solid var(--border-subtle)" }}>
               {party.emceeSync === false ? (
                 <>
@@ -295,6 +296,7 @@ export default function WatchPartyDetail() {
                 </>
               )}
             </div>
+            )}
           </div>
         )}
 

@@ -272,13 +272,13 @@ export default function BonusEvents() {
 
       {/* Emcee mode toggle */}
       {canEmcee && (
-        <div style={{ padding: "0 var(--space-4)" }}>
+        <div style={{ display: "flex", justifyContent: "center", marginTop: "var(--space-4)" }}>
           <button
             className="tap-target"
             onClick={toggleEmceeMode}
             style={{
-              display: "flex", alignItems: "center", justifyContent: "center", gap: "var(--space-2)",
-              width: "100%", padding: "var(--space-2) var(--space-4)", marginTop: "var(--space-4)",
+              display: "flex", alignItems: "center", gap: "var(--space-2)",
+              padding: "var(--space-2) var(--space-5)",
               background: emceeMode ? "var(--gold)" : "transparent",
               border: emceeMode ? "none" : "1px solid var(--border-gold)",
               borderRadius: "var(--radius-pill)", cursor: "pointer", fontFamily: "var(--font-body)",

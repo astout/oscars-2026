@@ -8,6 +8,8 @@ export interface Party {
   isListed?: boolean;
   publicParticipation?: boolean;
   emceeSync?: boolean;
+  isEmcee?: boolean;
+  isTemplateParty?: boolean;
   createdAt: string;
   role?: "host" | "member";
 }
