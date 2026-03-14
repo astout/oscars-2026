@@ -331,7 +331,9 @@ function JoinBrowser() {
                         className="input"
                         placeholder="Enter invite code"
                         value={codeValue}
-                        onChange={(e) => setCodeValue(e.target.value)}
+                        onChange={(e) => setCodeValue(e.target.value.toLowerCase())}
+                        autoCapitalize="none"
+                        autoCorrect="off"
                         autoFocus
                         style={{ flex: 1, fontFamily: "var(--font-mono)" }}
                       />

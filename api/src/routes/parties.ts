@@ -129,7 +129,7 @@ app.post("/:partyId/join", async (c) => {
   const { userId, email } = getUser(c);
   const partyId = param(c, "partyId");
   const body = await c.req.json().catch(() => ({}));
-  const code = body.code as string | undefined;
+  const code = body.code ? (body.code as string).toLowerCase() : undefined;
 
   const party = await getParty(partyId);
   if (!party) return c.json({ error: "Party not found" }, 404);
