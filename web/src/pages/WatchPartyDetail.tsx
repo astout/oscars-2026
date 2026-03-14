@@ -254,8 +254,8 @@ export default function WatchPartyDetail() {
           </div>
         )}
 
-        {/* Party Access Card (host only) */}
-        {isHost && (
+        {/* Party Access Card (host only, non-public parties) */}
+        {isHost && !party.publicParticipation && (
           <div className="card" style={{ marginBottom: "var(--space-6)", border: "0.5px solid var(--border-gold)" }}>
             <div style={{ display: "flex", alignItems: "center", gap: "var(--space-2)", marginBottom: "var(--space-3)" }}>
               <MegaphoneSimple size={16} weight="bold" style={{ color: "var(--gold)" }} />
@@ -453,8 +453,58 @@ export default function WatchPartyDetail() {
           </div>
         )}
 
-        {/* Invite Friends Card (host only) */}
-        {isHost && (
+        {/* Share Party Link (public parties) */}
+        {isHost && party.publicParticipation && (
+          <div className="card" style={{ marginBottom: "var(--space-6)", border: "0.5px solid var(--border-gold)" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "var(--space-2)", marginBottom: "var(--space-3)" }}>
+              <Link size={16} weight="bold" style={{ color: "var(--gold)" }} />
+              <p style={{ fontSize: "var(--text-sm)", fontWeight: "var(--weight-medium)", color: "var(--text-secondary)" }}>
+                Share Party
+              </p>
+            </div>
+            <p style={{ fontSize: "var(--text-xs)", color: "var(--text-faint)", marginBottom: "var(--space-3)" }}>
+              This is a public party — anyone with the link can join automatically.
+            </p>
+            <button
+              className="btn btn-primary btn-full"
+              onClick={() => copyToClipboard(`${window.location.origin}/join?party=${partyId}`, "party-link")}
+              style={{ marginBottom: "var(--space-3)" }}
+            >
+              {copied === "party-link" ? (
+                <><Check size={16} weight="bold" style={{ color: "var(--status-open)" }} /><span style={{ color: "var(--status-open)" }}>Copied!</span></>
+              ) : (
+                <><Copy size={16} weight="bold" /> Copy Party Link</>
+              )}
+            </button>
+            <button
+              className="btn btn-secondary btn-full"
+              onClick={() => setShowQr(!showQr)}
+              style={{ marginBottom: showQr ? "var(--space-3)" : undefined }}
+            >
+              <QrCode size={18} weight="bold" />
+              {showQr ? "Hide QR Code" : "Show QR Code"}
+            </button>
+            {showQr && (
+              <div className="animate-fade-in-up" style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "var(--space-3)", marginTop: "var(--space-3)" }}>
+                <div style={{ background: "#ffffff", padding: 16, borderRadius: "var(--radius-md)", lineHeight: 0 }}>
+                  <QRCodeCanvas
+                    value={`${window.location.origin}/join?party=${partyId}`}
+                    size={200}
+                    level="M"
+                    bgColor="#ffffff"
+                    fgColor="#000000"
+                  />
+                </div>
+                <p style={{ fontSize: "var(--text-xs)", color: "var(--text-faint)", textAlign: "center" }}>
+                  Scan to join this party
+                </p>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Invite Friends Card (host only, non-public parties) */}
+        {isHost && !party.publicParticipation && (
           <div className="card" style={{ marginBottom: "var(--space-6)", border: "0.5px solid var(--border-gold)" }}>
             <div style={{ display: "flex", alignItems: "center", gap: "var(--space-2)", marginBottom: "var(--space-3)" }}>
               <Link size={16} weight="bold" style={{ color: "var(--gold)" }} />

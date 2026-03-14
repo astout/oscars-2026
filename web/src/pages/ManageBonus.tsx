@@ -499,6 +499,18 @@ export default function ManageBonus() {
                       {opt === event.correctAnswer && " ✓"}
                     </span>
                   ))}
+                  {event.correctAnswer === "__none__" && (
+                    <span style={{
+                      padding: "var(--space-1) var(--space-3)",
+                      borderRadius: "var(--radius-pill)",
+                      fontSize: "var(--text-sm)",
+                      fontWeight: "var(--weight-medium)",
+                      background: "var(--status-wrong)",
+                      color: "#fff",
+                    }}>
+                      No winner
+                    </span>
+                  )}
                 </div>
 
                 {/* Resolve UI */}
@@ -519,13 +531,22 @@ export default function ManageBonus() {
                         </button>
                       ))}
                     </div>
-                    <button
-                      className="btn btn-ghost btn-sm"
-                      onClick={() => setResolvingId(null)}
-                      style={{ marginTop: "var(--space-2)" }}
-                    >
-                      Cancel
-                    </button>
+                    <div style={{ display: "flex", gap: "var(--space-2)", marginTop: "var(--space-2)" }}>
+                      <button
+                        className="btn btn-danger btn-sm"
+                        onClick={() => handleResolve(event.eventId, "__none__")}
+                        disabled={actionLoading === `resolve-${event.eventId}`}
+                      >
+                        <X size={14} weight="bold" />
+                        No one wins
+                      </button>
+                      <button
+                        className="btn btn-ghost btn-sm"
+                        onClick={() => setResolvingId(null)}
+                      >
+                        Cancel
+                      </button>
+                    </div>
                   </div>
                 )}
 

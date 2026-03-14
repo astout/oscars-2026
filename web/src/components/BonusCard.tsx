@@ -128,6 +128,20 @@ export default function BonusCard({ event, onWager }: BonusCardProps) {
                 {opt}
               </span>
             ))}
+            {event.correctAnswer === "__none__" && (
+              <span style={{
+                display: "inline-flex",
+                alignItems: "center",
+                padding: "var(--space-1) var(--space-3)",
+                borderRadius: "var(--radius-pill)",
+                fontSize: "var(--text-sm)",
+                fontWeight: "var(--weight-medium)",
+                background: "var(--status-wrong)",
+                color: "#fff",
+              }}>
+                No winner
+              </span>
+            )}
           </div>
           {event.userWager && (
             <p style={{ fontSize: "var(--text-xs)", color: "var(--text-muted)", marginBottom: "var(--space-2)" }}>
