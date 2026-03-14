@@ -1,6 +1,6 @@
 import { Hono } from "hono";
 import { setWinner, clearWinner, setCategoryLocked, setCategoryUpNext, getCategory, getNominees, getCategories } from "../db/categories.js";
-import { emceeGuard } from "../middleware/emcee-access.js";
+import { emceeGuard, globalEmceeGuard } from "../middleware/emcee-access.js";
 import { param } from "../middleware/params.js";
 import { createNotification } from "../db/notifications.js";
 import { getAllPicks } from "../db/picks.js";
@@ -38,8 +38,8 @@ async function notifyAllParties(
   );
 }
 
-// Set winner for a category (emcee only)
-app.post("/:partyId/categories/:categoryId/winner", emceeGuard, async (c) => {
+// Set winner for a category (global emcee only — event-level action)
+app.post("/:partyId/categories/:categoryId/winner", globalEmceeGuard, async (c) => {
   const categoryId = param(c, "categoryId");
   const { winnerId } = await c.req.json();
 
@@ -91,7 +91,7 @@ app.post("/:partyId/categories/:categoryId/winner", emceeGuard, async (c) => {
 });
 
 // Set category as "up next" (emcee only)
-app.post("/:partyId/categories/:categoryId/up-next", emceeGuard, async (c) => {
+app.post("/:partyId/categories/:categoryId/up-next", globalEmceeGuard, async (c) => {
   const categoryId = param(c, "categoryId");
 
   // Clear any other up-next categories
@@ -113,7 +113,7 @@ app.post("/:partyId/categories/:categoryId/up-next", emceeGuard, async (c) => {
 });
 
 // Clear up-next (emcee only)
-app.delete("/:partyId/categories/:categoryId/up-next", emceeGuard, async (c) => {
+app.delete("/:partyId/categories/:categoryId/up-next", globalEmceeGuard, async (c) => {
   await setCategoryUpNext(param(c, "categoryId"), false);
   return c.json({ upNext: false });
 });

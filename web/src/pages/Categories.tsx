@@ -54,6 +54,7 @@ export default function Categories() {
 
   // Emcee state
   const [canEmcee, setCanEmcee] = useState(false);
+  const [isGlobalEmcee, setIsGlobalEmcee] = useState(false);
   const [emceeMode, setEmceeMode] = useState(() => localStorage.getItem(EMCEE_MODE_KEY) === "true");
   const [allLocked, setAllLocked] = useState(false);
   const [expandedId, setExpandedId] = useState<string | null>(null);
@@ -96,6 +97,7 @@ export default function Categories() {
       setPicksMap(new Map(picks.map((p) => [p.categoryId, p])));
       // Can emcee if: global emcee on template party, OR host who opted to self-emcee
       setCanEmcee(!!party.isEmcee || party.emceeSync === false);
+      setIsGlobalEmcee(!!party.isEmcee);
       setAllLocked(!!party.allLocked);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to load categories");
@@ -274,15 +276,17 @@ export default function Categories() {
               </div>
             </div>
 
-            {/* Manage Emcees button */}
-            <button
-              className="btn btn-secondary btn-full"
-              onClick={() => navigate(`/party/${partyId}/ceremony/emcees`)}
-              style={{ marginBottom: "var(--space-4)" }}
-            >
-              <Crown size={18} weight="bold" style={{ color: "var(--gold)" }} />
-              Manage Emcees
-            </button>
+            {/* Manage Emcees button (global emcees only) */}
+            {isGlobalEmcee && (
+              <button
+                className="btn btn-secondary btn-full"
+                onClick={() => navigate(`/party/${partyId}/ceremony/emcees`)}
+                style={{ marginBottom: "var(--space-4)" }}
+              >
+                <Crown size={18} weight="bold" style={{ color: "var(--gold)" }} />
+                Manage Emcees
+              </button>
+            )}
 
             {/* Category list with emcee controls */}
             <div className="stagger-children" style={styles.list}>
@@ -313,14 +317,16 @@ export default function Categories() {
                       <div style={styles.catActions}>
                         {!cat.winnerId && (
                           <>
-                            <button
-                              className="btn btn-ghost btn-sm"
-                              onClick={(e) => { e.stopPropagation(); setUpNext(cat.categoryId, cat.upNext); }}
-                              disabled={actionLoading === `upnext-${cat.categoryId}`}
-                              style={{ color: cat.upNext ? "var(--gold)" : "var(--text-faint)" }}
-                            >
-                              <Lightning size={16} weight={cat.upNext ? "fill" : "regular"} />
-                            </button>
+                            {isGlobalEmcee && (
+                              <button
+                                className="btn btn-ghost btn-sm"
+                                onClick={(e) => { e.stopPropagation(); setUpNext(cat.categoryId, cat.upNext); }}
+                                disabled={actionLoading === `upnext-${cat.categoryId}`}
+                                style={{ color: cat.upNext ? "var(--gold)" : "var(--text-faint)" }}
+                              >
+                                <Lightning size={16} weight={cat.upNext ? "fill" : "regular"} />
+                              </button>
+                            )}
                             <button
                               className="btn btn-ghost btn-sm"
                               onClick={(e) => { e.stopPropagation(); toggleCategoryLock(cat); }}
@@ -331,11 +337,11 @@ export default function Categories() {
                             </button>
                           </>
                         )}
-                        {isExpanded ? <CaretUp size={16} style={{ color: "var(--text-muted)" }} /> : <CaretDown size={16} style={{ color: "var(--text-muted)" }} />}
+                        {isGlobalEmcee && (isExpanded ? <CaretUp size={16} style={{ color: "var(--text-muted)" }} /> : <CaretDown size={16} style={{ color: "var(--text-muted)" }} />)}
                       </div>
                     </button>
 
-                    {isExpanded && (
+                    {isExpanded && isGlobalEmcee && (
                       <div style={styles.nominees}>
                         {cat.nominees
                           .sort((a, b) => a.displayOrder - b.displayOrder)
