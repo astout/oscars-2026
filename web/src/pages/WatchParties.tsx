@@ -113,15 +113,7 @@ export default function WatchParties() {
                 <div key={i} className="skeleton" style={{ height: 64, borderRadius: "var(--radius-lg)" }} />
               ))}
             </div>
-          ) : parties.length === 0 ? (
-            <div className="empty-state" style={{ padding: "var(--space-8) 0" }}>
-              <Users size={48} className="empty-state-icon" />
-              <p className="empty-state-title">No Watch Parties yet</p>
-              <p className="empty-state-text">
-                Create a party for your friends or join one with an invite link.
-              </p>
-            </div>
-          ) : (
+          ) : parties.length === 0 ? null : (
             <div className="stagger-children" style={{ display: "flex", flexDirection: "column", gap: "var(--space-2)" }}>
               {parties.map((party) => {
                 const isOpen = party.isOpen === true;
