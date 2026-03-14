@@ -15,7 +15,9 @@
     "dev:web": "npm run dev -w web",
     "build": "npm run build -w web",
     "typecheck": "npm run typecheck -w api && npm run typecheck -w web",
-    "deploy": "npm run deploy -w infra",
+    "deploy:infra": "cd infra && npx cdk deploy --all --require-approval never",
+    "deploy:web": "npm run build -w web && aws s3 sync web/dist/ s3://oscars-2026-web-134502660579 --delete && aws cloudfront create-invalidation --distribution-id E361RT5DZK8Y9T --paths '/*'",
+    "deploy:all": "npm run deploy:infra && npm run deploy:web",
     "seed": "npx tsx api/src/seed.ts"
   },
   "devDependencies": {
