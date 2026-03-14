@@ -95,7 +95,7 @@ export default function Categories() {
       setCategories(cats.sort((a, b) => a.displayOrder - b.displayOrder));
       setPicksMap(new Map(picks.map((p) => [p.categoryId, p])));
       // Can emcee if: global emcee on template party, OR host who opted to self-emcee
-      setCanEmcee(!!(party.isEmcee && party.isTemplateParty) || party.emceeSync === false);
+      setCanEmcee(!!party.isEmcee || party.emceeSync === false);
       setAllLocked(!!party.allLocked);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to load categories");

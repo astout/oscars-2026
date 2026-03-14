@@ -131,7 +131,7 @@ export default function BonusEvents() {
         api.get<{ isEmcee?: boolean; isTemplateParty?: boolean; emceeSync?: boolean }>(`/parties/${partyId}`),
       ]);
       setEvents(evts);
-      const isGlobalEmcee = !!(party.isEmcee && party.isTemplateParty);
+      const isGlobalEmcee = !!party.isEmcee;
       const isSelfEmcee = party.emceeSync === false;
       setCanEmcee(isGlobalEmcee || isSelfEmcee);
       setCanBroadcast(isGlobalEmcee);

@@ -119,6 +119,7 @@ app.get("/:partyId", memberGuard, async (c) => {
     ...party,
     isEmcee: emcee,
     isTemplateParty: event?.templatePartyId === party.partyId,
+    templatePartyId: event?.templatePartyId || null,
   });
 });
 

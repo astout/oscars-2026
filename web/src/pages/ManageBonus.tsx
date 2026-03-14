@@ -68,7 +68,7 @@ export default function ManageBonus() {
       ]);
       setEvents(evts);
       setSuggestions(suggs);
-      setCanBroadcast(!!party.isEmcee && !!party.isTemplateParty);
+      setCanBroadcast(!!party.isEmcee);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to load");
     } finally {
