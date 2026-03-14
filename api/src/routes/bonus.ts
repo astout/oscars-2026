@@ -9,13 +9,40 @@ import {
   lockBonusEvent,
   unlockBonusEvent,
   placeWager,
+  deleteWager,
   getUserWagers,
 } from "../db/bonus.js";
 import { getEvent } from "../db/events.js";
+import { getAllEventParties } from "../db/parties.js";
 import { getUser } from "../middleware/auth.js";
 import { memberGuard, hostGuard } from "../middleware/party-access.js";
+import { emceeGuard } from "../middleware/emcee-access.js";
 import { param } from "../middleware/params.js";
 import type { BonusEvent, Wager } from "../types/index.js";
+
+// Helper: broadcast a bonus action from template party to all event parties
+async function broadcastBonusAction(
+  templatePartyId: string,
+  eventId: string,
+  question: string,
+  action: (partyId: string, bonusEventId: string) => Promise<void>
+): Promise<number> {
+  const parties = await getAllEventParties(eventId);
+  let count = 0;
+  await Promise.all(
+    parties
+      .filter((p) => p.partyId !== templatePartyId && p.emceeSync !== false)
+      .map(async (party) => {
+        const bonuses = await getBonusEvents(party.partyId);
+        const match = bonuses.find((b) => b.question.toLowerCase() === question.toLowerCase());
+        if (match) {
+          await action(party.partyId, match.eventId);
+          count++;
+        }
+      })
+  );
+  return count;
+}
 
 const app = new Hono();
 
@@ -201,6 +228,92 @@ app.post("/:partyId/bonus/:eventId/wager", memberGuard, async (c) => {
 
   await placeWager(partyId, wager);
   return c.json(wager);
+});
+
+// Emcee: broadcast lock bonus to all parties
+app.post("/:partyId/bonus/:eventId/broadcast-lock", emceeGuard, async (c) => {
+  const partyId = param(c, "partyId");
+  const eventId = param(c, "eventId");
+
+  const bonuses = await getBonusEvents(partyId);
+  const bonus = bonuses.find((b) => b.eventId === eventId);
+  if (!bonus) return c.json({ error: "Bonus event not found" }, 404);
+
+  // Lock on the source party
+  await lockBonusEvent(partyId, eventId);
+
+  // Broadcast to all other parties
+  const event = await getEvent("oscars_2026");
+  const count = event
+    ? await broadcastBonusAction(partyId, "oscars_2026", bonus.question, lockBonusEvent)
+    : 0;
+
+  return c.json({ status: "locked", broadcastCount: count });
+});
+
+// Emcee: broadcast unlock bonus to all parties
+app.post("/:partyId/bonus/:eventId/broadcast-unlock", emceeGuard, async (c) => {
+  const partyId = param(c, "partyId");
+  const eventId = param(c, "eventId");
+
+  const bonuses = await getBonusEvents(partyId);
+  const bonus = bonuses.find((b) => b.eventId === eventId);
+  if (!bonus) return c.json({ error: "Bonus event not found" }, 404);
+
+  await unlockBonusEvent(partyId, eventId);
+
+  const event = await getEvent("oscars_2026");
+  const count = event
+    ? await broadcastBonusAction(partyId, "oscars_2026", bonus.question, unlockBonusEvent)
+    : 0;
+
+  return c.json({ status: "open", broadcastCount: count });
+});
+
+// Emcee: broadcast resolve bonus to all parties
+app.post("/:partyId/bonus/:eventId/broadcast-resolve", emceeGuard, async (c) => {
+  const partyId = param(c, "partyId");
+  const eventId = param(c, "eventId");
+  const { correctAnswer } = await c.req.json();
+
+  if (!correctAnswer) return c.json({ error: "correctAnswer is required" }, 400);
+
+  const bonuses = await getBonusEvents(partyId);
+  const bonus = bonuses.find((b) => b.eventId === eventId);
+  if (!bonus) return c.json({ error: "Bonus event not found" }, 404);
+
+  await resolveBonusEvent(partyId, eventId, correctAnswer);
+
+  const event = await getEvent("oscars_2026");
+  const count = event
+    ? await broadcastBonusAction(
+        partyId,
+        "oscars_2026",
+        bonus.question,
+        (pid, eid) => resolveBonusEvent(pid, eid, correctAnswer)
+      )
+    : 0;
+
+  return c.json({ status: "resolved", correctAnswer, broadcastCount: count });
+});
+
+// Cancel wager (while event is open)
+app.delete("/:partyId/bonus/:eventId/wager", memberGuard, async (c) => {
+  const { userId } = getUser(c);
+  const partyId = param(c, "partyId");
+  const eventId = param(c, "eventId");
+
+  const events = await getBonusEvents(partyId);
+  const event = events.find((e) => e.eventId === eventId);
+  if (!event) {
+    return c.json({ error: "Bonus event not found" }, 404);
+  }
+  if (event.status !== "open") {
+    return c.json({ error: "Cannot cancel wager — event is locked or resolved" }, 400);
+  }
+
+  await deleteWager(partyId, userId, eventId);
+  return c.json({ deleted: true });
 });
 
 export default app;

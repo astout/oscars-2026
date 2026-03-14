@@ -161,6 +161,22 @@ export async function placeWager(
   );
 }
 
+export async function deleteWager(
+  partyId: string,
+  userId: string,
+  eventId: string
+): Promise<void> {
+  await db.send(
+    new DeleteCommand({
+      TableName: TABLE_NAME,
+      Key: {
+        PK: `PARTY#${partyId}`,
+        SK: `WAGER#${userId}#${eventId}`,
+      },
+    })
+  );
+}
+
 export async function getWagers(partyId: string): Promise<Wager[]> {
   const result = await db.send(
     new QueryCommand({

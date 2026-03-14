@@ -263,6 +263,7 @@ export async function updatePartySettings(
     publicParticipation?: boolean;
     isListed?: boolean;
     isOpen?: boolean;
+    emceeSync?: boolean;
   }
 ): Promise<void> {
   const expressions: string[] = [];
@@ -280,6 +281,10 @@ export async function updatePartySettings(
     expressions.push("isOpen = :io");
     values[":io"] = settings.isOpen;
   }
+  if (settings.emceeSync !== undefined) {
+    expressions.push("emceeSync = :es");
+    values[":es"] = settings.emceeSync;
+  }
 
   if (expressions.length === 0) return;
 
@@ -291,6 +296,22 @@ export async function updatePartySettings(
       ExpressionAttributeValues: values,
     })
   );
+}
+
+export async function getAllEventParties(
+  eventId: string
+): Promise<Party[]> {
+  const result = await db.send(
+    new ScanCommand({
+      TableName: TABLE_NAME,
+      FilterExpression: "SK = :sk AND eventId = :eid",
+      ExpressionAttributeValues: {
+        ":sk": "METADATA",
+        ":eid": eventId,
+      },
+    })
+  );
+  return (result.Items || []) as Party[];
 }
 
 export async function getListedParties(

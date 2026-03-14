@@ -47,6 +47,7 @@ export default function ManageBonus() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
   const [resolvingId, setResolvingId] = useState<string | null>(null);
+  const [canBroadcast, setCanBroadcast] = useState(false);
 
   // Create/Edit form state
   const [formQuestion, setFormQuestion] = useState("");
@@ -58,12 +59,14 @@ export default function ManageBonus() {
   const fetchData = useCallback(async () => {
     if (!partyId) return;
     try {
-      const [evts, suggs] = await Promise.all([
+      const [evts, suggs, party] = await Promise.all([
         api.get<BonusEvent[]>(`/parties/${partyId}/bonus`),
         api.get<Suggestion[]>(`/parties/${partyId}/bonus/suggestions`).catch(() => []),
+        api.get<{ isEmcee?: boolean; isTemplateParty?: boolean }>(`/parties/${partyId}`),
       ]);
       setEvents(evts);
       setSuggestions(suggs);
+      setCanBroadcast(!!party.isEmcee && !!party.isTemplateParty);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to load");
     } finally {
@@ -148,7 +151,10 @@ export default function ManageBonus() {
     const action = event.status === "locked" ? "unlock" : "lock";
     setActionLoading(`lock-${event.eventId}`);
     try {
-      await api.post(`/parties/${partyId}/bonus/${event.eventId}/${action}`);
+      const endpoint = canBroadcast
+        ? `/parties/${partyId}/bonus/${event.eventId}/broadcast-${action}`
+        : `/parties/${partyId}/bonus/${event.eventId}/${action}`;
+      await api.post(endpoint);
       setEvents((prev) =>
         prev.map((e) =>
           e.eventId === event.eventId
@@ -167,7 +173,11 @@ export default function ManageBonus() {
     if (!partyId) return;
     setActionLoading(`resolve-${eventId}`);
     try {
-      await api.patch(`/parties/${partyId}/bonus/${eventId}`, { correctAnswer });
+      if (canBroadcast) {
+        await api.post(`/parties/${partyId}/bonus/${eventId}/broadcast-resolve`, { correctAnswer });
+      } else {
+        await api.patch(`/parties/${partyId}/bonus/${eventId}`, { correctAnswer });
+      }
       setEvents((prev) =>
         prev.map((e) =>
           e.eventId === eventId
@@ -252,6 +262,11 @@ export default function ManageBonus() {
           </h1>
           {!loading && (
             <p className="page-subtitle">{events.length} {events.length === 1 ? "wager" : "wagers"}</p>
+          )}
+          {canBroadcast && (
+            <p style={{ fontSize: "var(--text-xs)", color: "var(--gold)", marginTop: "var(--space-1)" }}>
+              Emcee mode — lock, unlock, and resolve actions apply to all parties
+            </p>
           )}
         </div>
 

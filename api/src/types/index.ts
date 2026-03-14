@@ -22,6 +22,7 @@ export interface Party {
   isOpen?: boolean;
   isListed?: boolean;
   publicParticipation?: boolean;
+  emceeSync?: boolean;
   createdAt: string;
 }
 

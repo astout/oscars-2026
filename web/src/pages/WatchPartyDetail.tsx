@@ -450,6 +450,36 @@ export default function WatchPartyDetail() {
                 )}
               </>
             )}
+
+            {/* Emcee sync toggle */}
+            <div style={{ marginTop: "var(--space-4)", paddingTop: "var(--space-3)", borderTop: "0.5px solid var(--border-subtle)" }}>
+              <button
+                className={`btn ${party.emceeSync !== false ? "btn-primary" : "btn-secondary"} btn-full`}
+                onClick={async () => {
+                  setActionLoading("emceeSync");
+                  try {
+                    const updated = await api.patch<Party>(`/parties/${partyId}/settings`, { emceeSync: party.emceeSync === false });
+                    setParty(updated);
+                  } catch (err) {
+                    setError(err instanceof Error ? err.message : "Failed to update");
+                  } finally {
+                    setActionLoading(null);
+                  }
+                }}
+                disabled={actionLoading === "emceeSync"}
+              >
+                {party.emceeSync !== false ? (
+                  <><ArrowsClockwise size={18} weight="bold" /> Emcee sync on</>
+                ) : (
+                  <><X size={18} weight="bold" /> Emcee sync off</>
+                )}
+              </button>
+              <p style={{ fontSize: "var(--text-xs)", color: "var(--text-faint)", marginTop: "var(--space-2)" }}>
+                {party.emceeSync !== false
+                  ? "Ceremony emcee can lock and resolve wagers for this party."
+                  : "This party manages its own wagers independently."}
+              </p>
+            </div>
           </div>
         )}
 

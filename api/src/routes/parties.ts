@@ -103,9 +103,22 @@ app.get("/", async (c) => {
 
 // Get party details
 app.get("/:partyId", memberGuard, async (c) => {
+  const { userId } = getUser(c);
   const party = await getParty(param(c, "partyId"));
   if (!party) return c.json({ error: "Not found" }, 404);
-  return c.json(party);
+
+  const { isEmcee } = await import("../db/events.js");
+  const { getEvent: getEvt } = await import("../db/events.js");
+  const [emcee, event] = await Promise.all([
+    isEmcee(party.eventId, userId),
+    getEvt(party.eventId),
+  ]);
+
+  return c.json({
+    ...party,
+    isEmcee: emcee,
+    isTemplateParty: event?.templatePartyId === party.partyId,
+  });
 });
 
 // List members
@@ -261,6 +274,7 @@ app.patch("/:partyId/settings", hostGuard, async (c) => {
     publicParticipation?: boolean;
     isListed?: boolean;
     isOpen?: boolean;
+    emceeSync?: boolean;
   } = {};
   if (typeof body.publicParticipation === "boolean") {
     settings.publicParticipation = body.publicParticipation;
@@ -270,6 +284,9 @@ app.patch("/:partyId/settings", hostGuard, async (c) => {
   }
   if (typeof body.isOpen === "boolean") {
     settings.isOpen = body.isOpen;
+  }
+  if (typeof body.emceeSync === "boolean") {
+    settings.emceeSync = body.emceeSync;
   }
 
   await updatePartySettings(partyId, settings);
