@@ -61,10 +61,10 @@ function ToastCard({ toast, onDismiss, partyId }: { toast: ToastItem; onDismiss:
   }, [toast.id, onDismiss]);
 
   const icon = toast.type === "category-awarded"
-    ? <Trophy size={18} weight="fill" style={{ color: "var(--gold-bright)" }} />
+    ? <Trophy size={22} weight="fill" style={{ color: "var(--gold-bright)" }} />
     : toast.type === "category-up-next"
-      ? <Lightning size={18} weight="fill" style={{ color: "var(--gold)" }} />
-      : <Crown size={18} weight="fill" style={{ color: "var(--gold)" }} />;
+      ? <Lightning size={22} weight="fill" style={{ color: "var(--gold)" }} />
+      : <Crown size={22} weight="fill" style={{ color: "var(--gold)" }} />;
 
   const handleClick = () => {
     if (toast.linkTo && partyId) {
@@ -88,7 +88,7 @@ function ToastCard({ toast, onDismiss, partyId }: { toast: ToastItem; onDismiss:
         style={styles.dismissBtn}
         onClick={(e) => { e.stopPropagation(); onDismiss(toast.id); }}
       >
-        <X size={14} weight="bold" />
+        <X size={16} weight="bold" />
       </button>
     </div>
   );
@@ -113,11 +113,11 @@ const styles: Record<string, React.CSSProperties> = {
     display: "flex",
     alignItems: "center",
     gap: "var(--space-3)",
-    padding: "var(--space-3) var(--space-4)",
+    padding: "var(--space-4) var(--space-5)",
     background: "var(--surface-raised)",
-    border: "0.5px solid var(--border-gold)",
+    border: "2px solid var(--gold)",
     borderRadius: "var(--radius-lg)",
-    boxShadow: "0 8px 32px rgba(0,0,0,0.4)",
+    boxShadow: "0 8px 32px rgba(0,0,0,0.5), 0 0 12px rgba(212, 175, 55, 0.15)",
     maxWidth: 480,
     width: "100%",
     animation: "slideDown 300ms var(--ease-out)",
@@ -134,7 +134,7 @@ const styles: Record<string, React.CSSProperties> = {
   },
   toastMessage: {
     flex: 1,
-    fontSize: "var(--text-sm)",
+    fontSize: "var(--text-base)",
     fontWeight: "var(--weight-medium)" as unknown as number,
     color: "var(--text-primary)",
     lineHeight: 1.4,
