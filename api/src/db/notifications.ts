@@ -7,6 +7,7 @@ export interface Notification {
   type: "category-awarded" | "category-up-next" | "leaderboard-change" | "wager-locked" | "wager-unlocked" | "wager-resolved";
   message: string;
   linkTo?: string;
+  userId?: string; // null/undefined = broadcast to all, specific = only that user
   createdAt: string;
   ttl: number;
 }
@@ -16,6 +17,7 @@ export async function createNotification(
   type: Notification["type"],
   message: string,
   linkTo?: string,
+  userId?: string,
 ): Promise<Notification> {
   const now = new Date();
   const notification: Notification = {
@@ -23,6 +25,7 @@ export async function createNotification(
     type,
     message,
     linkTo,
+    ...(userId && { userId }),
     createdAt: now.toISOString(),
     ttl: Math.floor(now.getTime() / 1000) + 7200, // 2 hour TTL
   };
@@ -44,6 +47,7 @@ export async function createNotification(
 export async function getNotificationsSince(
   partyId: string,
   since: string,
+  userId?: string,
 ): Promise<Notification[]> {
   const result = await db.send(
     new QueryCommand({
@@ -56,8 +60,9 @@ export async function getNotificationsSince(
       ScanIndexForward: true,
     })
   );
-  // Filter to only NOTIFY# items (SK range could overlap with other prefixes)
   return ((result.Items || []) as (Notification & { SK: string })[])
     .filter((item) => item.SK.startsWith("NOTIFY#"))
+    // Filter: show broadcast notifications (no userId) + user's own personalized ones
+    .filter((item) => !item.userId || item.userId === userId)
     .map(({ SK: _, ...rest }) => rest as unknown as Notification);
 }

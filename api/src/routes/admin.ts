@@ -3,6 +3,8 @@ import { setWinner, clearWinner, setCategoryLocked, setCategoryUpNext, getCatego
 import { emceeGuard } from "../middleware/emcee-access.js";
 import { param } from "../middleware/params.js";
 import { createNotification } from "../db/notifications.js";
+import { getAllPicks } from "../db/picks.js";
+import { getMembers } from "../db/parties.js";
 
 const app = new Hono();
 
@@ -53,14 +55,36 @@ app.post("/:partyId/categories/:categoryId/winner", emceeGuard, async (c) => {
   await setWinner(categoryId, winnerId);
   await setCategoryUpNext(categoryId, false);
 
-  // Notify: "Winner Name wins Category Name!"
+  // Personalized notifications per user
   const [cat, nominees] = await Promise.all([
     getCategory(categoryId),
     getNominees(categoryId),
   ]);
   const winner = nominees.find((n) => n.nomineeId === winnerId);
   if (cat && winner) {
-    notifyAllParties("category-awarded", `${winner.name} wins ${cat.name}!`, `/categories`).catch(() => {});
+    const partyIds = await getAllPartyIds();
+    const notifyWork = partyIds.map(async (pid) => {
+      const [picks, members] = await Promise.all([
+        getAllPicks(pid),
+        getMembers(pid),
+      ]);
+      const picksByUser = new Map(
+        picks.filter((p) => p.categoryId === categoryId).map((p) => [p.userId, p])
+      );
+      await Promise.all(
+        members
+          .filter((m) => m.status === "active")
+          .map((m) => {
+            const pick = picksByUser.get(m.userId);
+            let pts = 0;
+            if (pick?.pick1NomineeId === winnerId) pts = 5;
+            else if (pick?.pick2NomineeId === winnerId) pts = 3;
+            const ptsText = pts > 0 ? `You earned +${pts} pts!` : pick ? "No points this time." : "You didn't pick this one.";
+            return createNotification(pid, "category-awarded", `${winner.name} wins ${cat.name}! ${ptsText}`, "/categories", m.userId);
+          })
+      );
+    });
+    Promise.all(notifyWork).catch(() => {});
   }
 
   return c.json({ categoryId, winnerId });

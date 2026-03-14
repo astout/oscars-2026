@@ -15,7 +15,7 @@ import {
   unresolveBonusEvent,
 } from "../db/bonus.js";
 import { getEvent } from "../db/events.js";
-import { getAllEventParties } from "../db/parties.js";
+import { getAllEventParties, getMembers } from "../db/parties.js";
 import { createNotification } from "../db/notifications.js";
 import { getUser } from "../middleware/auth.js";
 import { memberGuard, hostGuard } from "../middleware/party-access.js";
@@ -112,6 +112,28 @@ app.patch("/:partyId/bonus/:eventId", hostGuard, async (c) => {
   }
 
   await resolveBonusEvent(partyId, eventId, correctAnswer);
+
+  // Personalized notifications
+  const bonuses = await getBonusEvents(partyId);
+  const bonus = bonuses.find((b) => b.eventId === eventId);
+  if (bonus) {
+    const { getWagers } = await import("../db/bonus.js");
+    const [allWagers, members] = await Promise.all([getWagers(partyId), getMembers(partyId)]);
+    const wagersByUser = new Map(allWagers.filter((w) => w.eventId === eventId).map((w) => [w.userId, w]));
+    const q = bonus.question.length > 50 ? bonus.question.slice(0, 47) + "..." : bonus.question;
+    Promise.all(
+      members.filter((m) => m.status === "active").map((m) => {
+        const wager = wagersByUser.get(m.userId);
+        let ptsText: string;
+        if (!wager) ptsText = "You didn't wager.";
+        else if (correctAnswer === "__none__") ptsText = `You lost ${wager.wagerAmount} pts.`;
+        else if (wager.prediction === correctAnswer) ptsText = `You earned +${wager.wagerAmount} pts!`;
+        else ptsText = `You lost ${wager.wagerAmount} pts.`;
+        return createNotification(partyId, "wager-resolved", `Wager resolved: ${q} ${ptsText}`, "/bonus", m.userId);
+      })
+    ).catch(() => {});
+  }
+
   return c.json({ status: "resolved", correctAnswer });
 });
 
@@ -388,13 +410,43 @@ app.post("/:partyId/bonus/:eventId/broadcast-resolve", emceeGuard, async (c) => 
       )
     : 0;
 
+  // Personalized notifications per user
   const allParties = await getAllEventParties("oscars_2026");
-  const resolveMsg = correctAnswer === "__none__"
-    ? `Wager resolved (no winner): ${bonus.question}`
-    : `Wager resolved: ${bonus.question}`;
-  await Promise.all(
-    allParties.map((p) => createNotification(p.partyId, "wager-resolved", resolveMsg, "/bonus"))
-  ).catch(() => {});
+  const notifyWork = allParties.map(async (party) => {
+    const [partyBonuses, partyWagers, members] = await Promise.all([
+      getBonusEvents(party.partyId),
+      getUserWagers(party.partyId, "").catch(() => []), // fallback
+      getMembers(party.partyId),
+    ]);
+    // Get all wagers for this bonus event across all users
+    const { getWagers } = await import("../db/bonus.js");
+    const allWagers = await getWagers(party.partyId);
+    const matchingBonus = partyBonuses.find((b) => b.question.toLowerCase() === bonus.question.toLowerCase());
+    if (!matchingBonus) return;
+    const wagersByUser = new Map(
+      allWagers.filter((w) => w.eventId === matchingBonus.eventId).map((w) => [w.userId, w])
+    );
+    await Promise.all(
+      members
+        .filter((m) => m.status === "active")
+        .map((m) => {
+          const wager = wagersByUser.get(m.userId);
+          let ptsText: string;
+          if (!wager) {
+            ptsText = "You didn't wager.";
+          } else if (correctAnswer === "__none__") {
+            ptsText = `You lost ${wager.wagerAmount} pts.`;
+          } else if (wager.prediction === correctAnswer) {
+            ptsText = `You earned +${wager.wagerAmount} pts!`;
+          } else {
+            ptsText = `You lost ${wager.wagerAmount} pts.`;
+          }
+          const q = bonus.question.length > 50 ? bonus.question.slice(0, 47) + "..." : bonus.question;
+          return createNotification(party.partyId, "wager-resolved", `Wager resolved: ${q} ${ptsText}`, "/bonus", m.userId);
+        })
+    );
+  });
+  Promise.all(notifyWork).catch(() => {});
 
   return c.json({ status: "resolved", correctAnswer, broadcastCount: count });
 });
