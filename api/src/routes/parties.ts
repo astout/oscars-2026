@@ -110,13 +110,15 @@ app.get("/:partyId", memberGuard, async (c) => {
 
   const { isEmcee } = await import("../db/events.js");
   const { getEvent: getEvt } = await import("../db/events.js");
-  const [emcee, event] = await Promise.all([
+  const [emcee, event, member] = await Promise.all([
     isEmcee(party.eventId, userId),
     getEvt(party.eventId),
+    getMember(party.partyId, userId),
   ]);
 
   return c.json({
     ...party,
+    role: member?.role || "member",
     isEmcee: emcee,
     isTemplateParty: event?.templatePartyId === party.partyId,
     templatePartyId: event?.templatePartyId || null,

@@ -128,11 +128,12 @@ export default function BonusEvents() {
     try {
       const [evts, party] = await Promise.all([
         api.get<BonusEvent[]>(`/parties/${partyId}/bonus`),
-        api.get<{ isEmcee?: boolean; isTemplateParty?: boolean; emceeSync?: boolean }>(`/parties/${partyId}`),
+        api.get<{ isEmcee?: boolean; isTemplateParty?: boolean; emceeSync?: boolean; role?: string }>(`/parties/${partyId}`),
       ]);
       setEvents(evts);
       const isGlobalEmcee = !!party.isEmcee;
-      const isSelfEmcee = party.emceeSync === false;
+      const isHost = party.role === "host";
+      const isSelfEmcee = party.emceeSync === false && isHost;
       setCanEmcee(isGlobalEmcee || isSelfEmcee);
       setCanBroadcast(isGlobalEmcee);
     } catch (err) {

@@ -89,7 +89,7 @@ export default function Categories() {
     setLoading(true);
     setError("");
     try {
-      const party = await api.get<{ isEmcee?: boolean; isTemplateParty?: boolean; emceeSync?: boolean; allLocked?: boolean }>(`/parties/${partyId}`);
+      const party = await api.get<{ isEmcee?: boolean; isTemplateParty?: boolean; emceeSync?: boolean; allLocked?: boolean; role?: string }>(`/parties/${partyId}`);
       const selfEmcee = party.emceeSync === false;
       const catEndpoint = selfEmcee ? `/parties/${partyId}/categories` : "/categories";
       const [cats, picks] = await Promise.all([
@@ -98,7 +98,8 @@ export default function Categories() {
       ]);
       setCategories(cats.sort((a, b) => a.displayOrder - b.displayOrder));
       setPicksMap(new Map(picks.map((p) => [p.categoryId, p])));
-      setCanEmcee(!!party.isEmcee || selfEmcee);
+      const isHost = party.role === "host";
+      setCanEmcee(!!party.isEmcee || (selfEmcee && isHost));
       setIsGlobalEmcee(!!party.isEmcee);
       setIsSelfEmcee(selfEmcee);
       setAllLocked(!!party.allLocked);
