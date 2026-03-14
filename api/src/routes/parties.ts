@@ -53,7 +53,7 @@ app.post("/", async (c) => {
     name: name.trim(),
     hostUserId: userId,
     allLocked: false,
-    publicParticipation: true,
+    publicParticipation: false,
     createdAt: new Date().toISOString(),
   };
 

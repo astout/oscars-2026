@@ -254,8 +254,8 @@ export default function WatchPartyDetail() {
           </div>
         )}
 
-        {/* Party Access Card (host only, non-public parties) */}
-        {isHost && !party.publicParticipation && (
+        {/* Party Access Card (host only) */}
+        {isHost && (
           <div className="card" style={{ marginBottom: "var(--space-6)", border: "0.5px solid var(--border-gold)" }}>
             <div style={{ display: "flex", alignItems: "center", gap: "var(--space-2)", marginBottom: "var(--space-3)" }}>
               <MegaphoneSimple size={16} weight="bold" style={{ color: "var(--gold)" }} />
@@ -264,6 +264,38 @@ export default function WatchPartyDetail() {
               </p>
             </div>
 
+            {/* Toggle publicParticipation */}
+            <button
+              className={`btn ${party.publicParticipation ? "btn-primary" : "btn-secondary"} btn-full`}
+              onClick={async () => {
+                setActionLoading("public");
+                try {
+                  const updated = await api.patch<Party>(`/parties/${partyId}/settings`, { publicParticipation: !party.publicParticipation });
+                  setParty(updated);
+                } catch (err) {
+                  setError(err instanceof Error ? err.message : "Failed to update");
+                } finally {
+                  setActionLoading(null);
+                }
+              }}
+              disabled={actionLoading === "public"}
+              style={{ marginBottom: "var(--space-2)" }}
+            >
+              {party.publicParticipation ? (
+                <><GlobeSimple size={18} weight="bold" /> Public — anyone can join</>
+              ) : (
+                <><Lock size={18} weight="bold" /> Private — invite required</>
+              )}
+            </button>
+            <p style={{ fontSize: "var(--text-xs)", color: "var(--text-faint)", marginBottom: "var(--space-3)" }}>
+              {party.publicParticipation
+                ? "Anyone with the link can join automatically."
+                : "Members need an invite link or host approval to join."}
+            </p>
+
+            {/* Additional access controls (private parties only) */}
+            {!party.publicParticipation && (
+              <>
             {/* Toggle isOpen */}
             <button
               className={`btn ${party.isOpen ? "btn-primary" : "btn-secondary"} btn-full`}
@@ -448,6 +480,8 @@ export default function WatchPartyDetail() {
                     Set Universal Code
                   </button>
                 )}
+              </>
+            )}
               </>
             )}
           </div>
