@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { Crown, Copy, Check, Users, Link, X, UserPlus, Lock, LockOpen, DoorOpen, PencilSimple, Sparkle, Trash, GlobeSimple, Eye, EyeSlash, ArrowsClockwise, QrCode, MegaphoneSimple } from "@phosphor-icons/react";
+import { Crown, Copy, Check, Users, Link, X, UserPlus, Lock, LockOpen, DoorOpen, PencilSimple, Sparkle, Trash, GlobeSimple, Eye, EyeSlash, ArrowsClockwise, QrCode, MegaphoneSimple, Microphone } from "@phosphor-icons/react";
 import { QRCodeCanvas } from "qrcode.react";
 import { api } from "../api/client.js";
 import { useAuthContext } from "../auth/AuthContext.js";
@@ -26,6 +26,7 @@ export default function WatchPartyDetail() {
   const [copySource, setCopySource] = useState("");
   const [copyResult, setCopyResult] = useState<{ copied: number; skipped: number } | null>(null);
   const [myPublicOptOut, setMyPublicOptOut] = useState(false);
+  const [confirmBeEmcee, setConfirmBeEmcee] = useState(false);
 
   // Invite state
   const [invites, setInvites] = useState<Invite[]>([]);
@@ -213,43 +214,86 @@ export default function WatchPartyDetail() {
               </button>
             )}
 
-            <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-2)" }}>
-              <button
-                className={`btn ${party.allLocked ? "btn-primary" : "btn-secondary"} btn-full`}
-                onClick={async () => {
-                  setActionLoading("lock");
-                  try {
-                    const endpoint = party.allLocked ? "unlock" : "lock";
-                    await api.post(`/parties/${partyId}/${endpoint}`);
-                    setParty({ ...party, allLocked: !party.allLocked });
-                  } catch (err) {
-                    setError(err instanceof Error ? err.message : "Failed");
-                  } finally {
-                    setActionLoading(null);
-                  }
-                }}
-                disabled={actionLoading === "lock"}
-              >
-                {party.allLocked ? (
-                  <><LockOpen size={18} weight="bold" /> Unlock All Picks</>
-                ) : (
-                  <><Lock size={18} weight="bold" /> Lock All Picks</>
-                )}
-              </button>
-              <button
-                className="btn btn-secondary btn-full"
-                onClick={() => navigate(`/party/${partyId}/bonus/manage`)}
-              >
-                <Sparkle size={18} weight="bold" style={{ color: "var(--gold)" }} />
-                Manage Wagers
-              </button>
-              <button
-                className="btn btn-secondary btn-full"
-                onClick={() => navigate(`/party/${partyId}/ceremony`)}
-              >
-                <Crown size={18} weight="bold" style={{ color: "var(--gold)" }} />
-                Ceremony Mode
-              </button>
+            {/* Be the Emcee toggle */}
+            <div style={{ marginTop: "var(--space-2)", paddingTop: "var(--space-3)", borderTop: "0.5px solid var(--border-subtle)" }}>
+              {party.emceeSync === false ? (
+                <>
+                  <div style={{ display: "flex", alignItems: "center", gap: "var(--space-2)", marginBottom: "var(--space-2)" }}>
+                    <Microphone size={16} weight="bold" style={{ color: "var(--gold)" }} />
+                    <p style={{ fontSize: "var(--text-sm)", fontWeight: "var(--weight-medium)", color: "var(--gold)" }}>
+                      You are the Emcee of this party
+                    </p>
+                  </div>
+                  <p style={{ fontSize: "var(--text-xs)", color: "var(--text-faint)", marginBottom: "var(--space-3)" }}>
+                    You manage all categories and wagers. Use the emcee toggle on the Categories and Wagers pages to switch between managing and making picks.
+                  </p>
+                  <button
+                    className="btn btn-ghost btn-full"
+                    onClick={async () => {
+                      setActionLoading("emceeSync");
+                      try {
+                        const updated = await api.patch<Party>(`/parties/${partyId}/settings`, { emceeSync: true });
+                        setParty(updated);
+                      } catch (err) {
+                        setError(err instanceof Error ? err.message : "Failed to update");
+                      } finally {
+                        setActionLoading(null);
+                      }
+                    }}
+                    disabled={actionLoading === "emceeSync"}
+                  >
+                    <ArrowsClockwise size={16} weight="bold" />
+                    Return to Emcee sync
+                  </button>
+                </>
+              ) : confirmBeEmcee ? (
+                <div style={{ padding: "var(--space-3)", background: "var(--surface-interactive)", borderRadius: "var(--radius-md)" }}>
+                  <p style={{ fontSize: "var(--text-sm)", color: "var(--text-primary)", fontWeight: "var(--weight-medium)", marginBottom: "var(--space-2)" }}>
+                    Are you sure?
+                  </p>
+                  <p style={{ fontSize: "var(--text-xs)", color: "var(--text-muted)", marginBottom: "var(--space-3)", lineHeight: 1.5 }}>
+                    This makes you responsible for managing all categories and wagers yourself. Your party will also be removed from the public leaderboard and set to private.
+                  </p>
+                  <div style={{ display: "flex", gap: "var(--space-2)" }}>
+                    <button
+                      className="btn btn-primary btn-sm"
+                      onClick={async () => {
+                        setActionLoading("emceeSync");
+                        try {
+                          const updated = await api.patch<Party>(`/parties/${partyId}/settings`, { emceeSync: false });
+                          setParty(updated);
+                          setConfirmBeEmcee(false);
+                        } catch (err) {
+                          setError(err instanceof Error ? err.message : "Failed to update");
+                        } finally {
+                          setActionLoading(null);
+                        }
+                      }}
+                      disabled={actionLoading === "emceeSync"}
+                      style={{ flex: 1 }}
+                    >
+                      <Microphone size={16} weight="bold" />
+                      Be the Emcee
+                    </button>
+                    <button className="btn btn-ghost btn-sm" onClick={() => setConfirmBeEmcee(false)}>
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <>
+                  <button
+                    className="btn btn-secondary btn-full"
+                    onClick={() => setConfirmBeEmcee(true)}
+                  >
+                    <Microphone size={18} weight="bold" />
+                    Be the Emcee
+                  </button>
+                  <p style={{ fontSize: "var(--text-xs)", color: "var(--text-faint)", marginTop: "var(--space-2)" }}>
+                    Take full control of categories and wagers for this party.
+                  </p>
+                </>
+              )}
             </div>
           </div>
         )}
@@ -451,35 +495,6 @@ export default function WatchPartyDetail() {
               </>
             )}
 
-            {/* Emcee sync toggle */}
-            <div style={{ marginTop: "var(--space-4)", paddingTop: "var(--space-3)", borderTop: "0.5px solid var(--border-subtle)" }}>
-              <button
-                className={`btn ${party.emceeSync !== false ? "btn-primary" : "btn-secondary"} btn-full`}
-                onClick={async () => {
-                  setActionLoading("emceeSync");
-                  try {
-                    const updated = await api.patch<Party>(`/parties/${partyId}/settings`, { emceeSync: party.emceeSync === false });
-                    setParty(updated);
-                  } catch (err) {
-                    setError(err instanceof Error ? err.message : "Failed to update");
-                  } finally {
-                    setActionLoading(null);
-                  }
-                }}
-                disabled={actionLoading === "emceeSync"}
-              >
-                {party.emceeSync !== false ? (
-                  <><ArrowsClockwise size={18} weight="bold" /> Emcee sync on</>
-                ) : (
-                  <><X size={18} weight="bold" /> Emcee sync off</>
-                )}
-              </button>
-              <p style={{ fontSize: "var(--text-xs)", color: "var(--text-faint)", marginTop: "var(--space-2)" }}>
-                {party.emceeSync !== false
-                  ? "Ceremony emcee can lock and resolve wagers for this party."
-                  : "This party manages its own wagers independently."}
-              </p>
-            </div>
           </div>
         )}
 

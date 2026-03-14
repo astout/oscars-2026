@@ -74,11 +74,11 @@ export default function EmceeSettings() {
       <div style={styles.topBar}>
         <button
           className="tap-target"
-          onClick={() => navigate(`/party/${partyId}/ceremony`)}
+          onClick={() => navigate(`/party/${partyId}/categories`)}
           style={styles.backButton}
         >
           <CaretLeft size={18} weight="bold" />
-          <span>Ceremony</span>
+          <span>Categories</span>
         </button>
       </div>
 

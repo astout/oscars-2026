@@ -288,6 +288,11 @@ app.patch("/:partyId/settings", hostGuard, async (c) => {
   }
   if (typeof body.emceeSync === "boolean") {
     settings.emceeSync = body.emceeSync;
+    // Self-emceeing: force private and remove from public leaderboard
+    if (body.emceeSync === false) {
+      settings.publicParticipation = false;
+      settings.isOpen = false;
+    }
   }
 
   await updatePartySettings(partyId, settings);
