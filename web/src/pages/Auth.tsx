@@ -105,9 +105,16 @@ export default function Auth() {
         }
         case "sign-up":
           await auth.signUp({ email, password, displayName });
-          setMessage("Check your email for a verification code.");
-          setView("confirm");
-          break;
+          // Auto sign-in after signup (no email confirmation required)
+          await auth.signIn(email, password);
+          const pendingAfterSignup = localStorage.getItem("pendingRedirect");
+          if (pendingAfterSignup) {
+            localStorage.removeItem("pendingRedirect");
+            window.location.replace(pendingAfterSignup);
+          } else {
+            window.location.replace("/");
+          }
+          return;
         case "confirm":
           await auth.confirmSignUp(email, code);
           // Auto sign-in after verification to avoid extra step

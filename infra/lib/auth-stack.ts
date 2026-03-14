@@ -13,7 +13,7 @@ export class AuthStack extends cdk.Stack {
       userPoolName: "oscars-2026-users",
       selfSignUpEnabled: true,
       signInAliases: { email: true },
-      autoVerify: { email: true },
+      autoVerify: {},
       standardAttributes: {
         email: { required: true, mutable: true },
       },
