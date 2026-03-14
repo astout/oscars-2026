@@ -1,6 +1,6 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { FilmSlate, Sparkle } from "@phosphor-icons/react";
+import { FilmSlate, Sparkle, MagnifyingGlass, X } from "@phosphor-icons/react";
 import { api } from "../api/client.js";
 import CategoryCard from "../components/CategoryCard.js";
 import PickModal from "../components/PickModal.js";
@@ -43,6 +43,26 @@ export default function Categories() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
+  const [searchInput, setSearchInput] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
+  const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined);
+
+  const handleSearchChange = (value: string) => {
+    setSearchInput(value);
+    clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => setSearchQuery(value), 200);
+  };
+
+  const filteredCategories = useMemo(() => {
+    if (!searchQuery.trim()) return categories;
+    const terms = searchQuery.toLowerCase().split(/\s+/).filter(Boolean);
+    return categories.filter((cat) => {
+      const catName = cat.name.toLowerCase();
+      const nomineeText = cat.nominees.map((n) => `${n.name} ${n.subtitle || ""}`).join(" ").toLowerCase();
+      const searchable = `${catName} ${nomineeText}`;
+      return terms.every((term) => searchable.includes(term));
+    });
+  }, [categories, searchQuery]);
 
   const fetchData = useCallback(async () => {
     if (!partyId) return;
@@ -106,10 +126,33 @@ export default function Categories() {
           </h1>
           {!loading && (
             <p className="page-subtitle">
-              {pickedCount} of {totalCount} picked
+              {searchQuery
+                ? `${filteredCategories.length} of ${totalCount} categories`
+                : `${pickedCount} of ${totalCount} picked`}
             </p>
           )}
         </div>
+
+        {!loading && categories.length > 0 && (
+          <div style={styles.searchWrap}>
+            <MagnifyingGlass size={16} style={{ color: "var(--text-muted)", flexShrink: 0 }} />
+            <input
+              type="text"
+              placeholder="Search categories or nominees..."
+              value={searchInput}
+              onChange={(e) => handleSearchChange(e.target.value)}
+              className="input"
+              style={styles.searchInput}
+              autoCapitalize="none"
+              autoCorrect="off"
+            />
+            {searchInput && (
+              <button style={styles.searchClear} onClick={() => { setSearchInput(""); setSearchQuery(""); }}>
+                <X size={14} weight="bold" />
+              </button>
+            )}
+          </div>
+        )}
 
         {error && <p style={styles.error}>{error}</p>}
 
@@ -121,7 +164,7 @@ export default function Categories() {
           </div>
         ) : (
           <div className="category-grid stagger-children">
-            {categories.map((cat) => (
+            {filteredCategories.map((cat) => (
               <CategoryCard
                 key={cat.categoryId}
                 category={cat}
@@ -148,6 +191,34 @@ export default function Categories() {
 
 const styles: Record<string, React.CSSProperties> = {
   title: { display: "flex", alignItems: "center", gap: "var(--space-2)" },
+  searchWrap: {
+    display: "flex",
+    alignItems: "center",
+    gap: "var(--space-2)",
+    padding: "var(--space-2) var(--space-3)",
+    background: "var(--surface-interactive)",
+    borderRadius: "var(--radius-md)",
+    border: "0.5px solid var(--border)",
+    marginBottom: "var(--space-4)",
+  },
+  searchInput: {
+    flex: 1,
+    border: "none",
+    background: "transparent",
+    padding: 0,
+    fontSize: "var(--text-sm)",
+    outline: "none",
+  },
+  searchClear: {
+    background: "none",
+    border: "none",
+    color: "var(--text-muted)",
+    cursor: "pointer",
+    padding: "var(--space-1)",
+    display: "flex",
+    alignItems: "center",
+    flexShrink: 0,
+  },
   error: { color: "var(--status-wrong)", fontSize: "var(--text-sm)", textAlign: "center", padding: "var(--space-4)" },
   skeleton: { height: 120 },
   wagerBanner: {

@@ -11,6 +11,8 @@ import {
   placeWager,
   deleteWager,
   getUserWagers,
+  setBonusUpNext,
+  unresolveBonusEvent,
 } from "../db/bonus.js";
 import { getEvent } from "../db/events.js";
 import { getAllEventParties } from "../db/parties.js";
@@ -90,6 +92,7 @@ app.post("/:partyId/bonus", hostGuard, async (c) => {
     minWager: clampedMin,
     maxWager: clampedMax,
     status: "open",
+    upNext: false,
     createdAt: new Date().toISOString(),
     resolvedAt: null,
   };
@@ -110,6 +113,14 @@ app.patch("/:partyId/bonus/:eventId", hostGuard, async (c) => {
 
   await resolveBonusEvent(partyId, eventId, correctAnswer);
   return c.json({ status: "resolved", correctAnswer });
+});
+
+// Unresolve bonus event (host only) — reset to open
+app.post("/:partyId/bonus/:eventId/unresolve", hostGuard, async (c) => {
+  const partyId = param(c, "partyId");
+  const eventId = param(c, "eventId");
+  await unresolveBonusEvent(partyId, eventId);
+  return c.json({ status: "open" });
 });
 
 // Update bonus event (host only)
@@ -151,6 +162,7 @@ app.post("/:partyId/bonus/:eventId/lock", hostGuard, async (c) => {
   const partyId = param(c, "partyId");
   const eventId = param(c, "eventId");
   await lockBonusEvent(partyId, eventId);
+  await setBonusUpNext(partyId, eventId, false);
   return c.json({ status: "locked" });
 });
 
@@ -231,6 +243,75 @@ app.post("/:partyId/bonus/:eventId/wager", memberGuard, async (c) => {
   return c.json(wager);
 });
 
+// Emcee: broadcast up-next (closing soon) to all parties
+app.post("/:partyId/bonus/:eventId/broadcast-up-next", emceeGuard, async (c) => {
+  const partyId = param(c, "partyId");
+  const eventId = param(c, "eventId");
+
+  const bonuses = await getBonusEvents(partyId);
+  const bonus = bonuses.find((b) => b.eventId === eventId);
+  if (!bonus) return c.json({ error: "Bonus event not found" }, 404);
+
+  // Clear upNext on all other bonus events in this party
+  await Promise.all(
+    bonuses
+      .filter((b) => b.upNext && b.eventId !== eventId)
+      .map((b) => setBonusUpNext(partyId, b.eventId, false))
+  );
+  await setBonusUpNext(partyId, eventId, true);
+
+  // Broadcast to all other parties
+  const allParties = await getAllEventParties("oscars_2026");
+  await Promise.all(
+    allParties
+      .filter((p) => p.partyId !== partyId && p.emceeSync !== false)
+      .map(async (party) => {
+        const partyBonuses = await getBonusEvents(party.partyId);
+        // Clear other upNext
+        await Promise.all(
+          partyBonuses
+            .filter((b) => b.upNext)
+            .map((b) => setBonusUpNext(party.partyId, b.eventId, false))
+        );
+        const match = partyBonuses.find((b) => b.question.toLowerCase() === bonus.question.toLowerCase());
+        if (match) await setBonusUpNext(party.partyId, match.eventId, true);
+      })
+  );
+
+  // Notify all parties
+  await Promise.all(
+    allParties.map((p) => createNotification(p.partyId, "wager-locked", `Wager closing soon: ${bonus.question}`, "/bonus"))
+  ).catch(() => {});
+
+  return c.json({ upNext: true });
+});
+
+// Emcee: clear up-next on a bonus event
+app.delete("/:partyId/bonus/:eventId/broadcast-up-next", emceeGuard, async (c) => {
+  const partyId = param(c, "partyId");
+  const eventId = param(c, "eventId");
+
+  await setBonusUpNext(partyId, eventId, false);
+
+  // Broadcast to all other parties
+  const bonuses = await getBonusEvents(partyId);
+  const bonus = bonuses.find((b) => b.eventId === eventId);
+  if (bonus) {
+    const allParties = await getAllEventParties("oscars_2026");
+    await Promise.all(
+      allParties
+        .filter((p) => p.partyId !== partyId && p.emceeSync !== false)
+        .map(async (party) => {
+          const partyBonuses = await getBonusEvents(party.partyId);
+          const match = partyBonuses.find((b) => b.question.toLowerCase() === bonus.question.toLowerCase());
+          if (match) await setBonusUpNext(party.partyId, match.eventId, false);
+        })
+    );
+  }
+
+  return c.json({ upNext: false });
+});
+
 // Emcee: broadcast lock bonus to all parties
 app.post("/:partyId/bonus/:eventId/broadcast-lock", emceeGuard, async (c) => {
   const partyId = param(c, "partyId");
@@ -240,8 +321,9 @@ app.post("/:partyId/bonus/:eventId/broadcast-lock", emceeGuard, async (c) => {
   const bonus = bonuses.find((b) => b.eventId === eventId);
   if (!bonus) return c.json({ error: "Bonus event not found" }, 404);
 
-  // Lock on the source party
+  // Lock on the source party + clear upNext
   await lockBonusEvent(partyId, eventId);
+  if (bonus.upNext) await setBonusUpNext(partyId, eventId, false);
 
   // Broadcast to all other parties
   const event = await getEvent("oscars_2026");
@@ -315,6 +397,25 @@ app.post("/:partyId/bonus/:eventId/broadcast-resolve", emceeGuard, async (c) => 
   ).catch(() => {});
 
   return c.json({ status: "resolved", correctAnswer, broadcastCount: count });
+});
+
+// Emcee: broadcast unresolve bonus to all parties
+app.post("/:partyId/bonus/:eventId/broadcast-unresolve", emceeGuard, async (c) => {
+  const partyId = param(c, "partyId");
+  const eventId = param(c, "eventId");
+
+  const bonuses = await getBonusEvents(partyId);
+  const bonus = bonuses.find((b) => b.eventId === eventId);
+  if (!bonus) return c.json({ error: "Bonus event not found" }, 404);
+
+  await unresolveBonusEvent(partyId, eventId);
+
+  const count = await broadcastBonusAction(
+    partyId, "oscars_2026", bonus.question,
+    (pid, eid) => unresolveBonusEvent(pid, eid)
+  );
+
+  return c.json({ status: "open", broadcastCount: count });
 });
 
 // Cancel wager (while event is open)

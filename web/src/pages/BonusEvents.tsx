@@ -1,7 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { createPortal } from "react-dom";
 import { useParams } from "react-router-dom";
-import { Sparkle, Question, X, CoinVertical, Target, TrendUp } from "@phosphor-icons/react";
+import { Sparkle, Question, X, CoinVertical, Target, TrendUp, MagnifyingGlass } from "@phosphor-icons/react";
 
 const titleStyle: React.CSSProperties = { display: "flex", alignItems: "center", gap: "var(--space-2)" };
 import { api } from "../api/client.js";
@@ -23,6 +23,7 @@ interface BonusEvent {
   correctAnswer: string | null;
   maxWager: number;
   status: "open" | "locked" | "resolved";
+  upNext?: boolean;
   createdAt: string;
   resolvedAt: string | null;
   userWager: Wager | null;
@@ -192,6 +193,24 @@ export default function BonusEvents() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [showGuide, setShowGuide] = useState(false);
+  const [searchInput, setSearchInput] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
+  const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined);
+
+  const handleSearchChange = (value: string) => {
+    setSearchInput(value);
+    clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => setSearchQuery(value), 200);
+  };
+
+  const filteredEvents = useMemo(() => {
+    if (!searchQuery.trim()) return events;
+    const terms = searchQuery.toLowerCase().split(/\s+/).filter(Boolean);
+    return events.filter((e) => {
+      const searchable = e.question.toLowerCase();
+      return terms.every((term) => searchable.includes(term));
+    });
+  }, [events, searchQuery]);
 
   useEffect(() => {
     api
@@ -281,12 +300,35 @@ export default function BonusEvents() {
             How it works
           </button>
         </div>
-        <p className="page-subtitle">{events.length} {events.length === 1 ? "wager" : "wagers"}</p>
+        <p className="page-subtitle">
+          {searchQuery
+            ? `${filteredEvents.length} of ${events.length} wagers`
+            : `${events.length} ${events.length === 1 ? "wager" : "wagers"}`}
+        </p>
       </div>
       {showGuide && createPortal(<WagerGuideModal onClose={() => setShowGuide(false)} />, document.body)}
       <div className="page-content">
+        {events.length > 1 && (
+          <div style={searchStyles.wrap}>
+            <MagnifyingGlass size={16} style={{ color: "var(--text-muted)", flexShrink: 0 }} />
+            <input
+              type="text"
+              placeholder="Search wagers..."
+              value={searchInput}
+              onChange={(e) => handleSearchChange(e.target.value)}
+              style={searchStyles.input}
+              autoCapitalize="none"
+              autoCorrect="off"
+            />
+            {searchInput && (
+              <button style={searchStyles.clear} onClick={() => { setSearchInput(""); setSearchQuery(""); }}>
+                <X size={14} weight="bold" />
+              </button>
+            )}
+          </div>
+        )}
         <div className="stagger-children" style={{ display: "flex", flexDirection: "column", gap: "var(--space-4)" }}>
-          {events.map((event) => (
+          {filteredEvents.map((event) => (
             <BonusCard key={event.eventId} event={event} onWager={handleWager} onCancelWager={handleCancelWager} />
           ))}
         </div>
@@ -294,3 +336,36 @@ export default function BonusEvents() {
     </div>
   );
 }
+
+const searchStyles: Record<string, React.CSSProperties> = {
+  wrap: {
+    display: "flex",
+    alignItems: "center",
+    gap: "var(--space-2)",
+    padding: "var(--space-2) var(--space-3)",
+    background: "var(--surface-interactive)",
+    borderRadius: "var(--radius-md)",
+    border: "0.5px solid var(--border)",
+    marginBottom: "var(--space-4)",
+  },
+  input: {
+    flex: 1,
+    border: "none",
+    background: "transparent",
+    padding: 0,
+    fontSize: "var(--text-sm)",
+    color: "var(--text-primary)",
+    fontFamily: "var(--font-body)",
+    outline: "none",
+  },
+  clear: {
+    background: "none",
+    border: "none",
+    color: "var(--text-muted)",
+    cursor: "pointer",
+    padding: "var(--space-1)",
+    display: "flex",
+    alignItems: "center",
+    flexShrink: 0,
+  },
+};

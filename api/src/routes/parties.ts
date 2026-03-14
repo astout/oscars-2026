@@ -73,6 +73,7 @@ app.post("/", async (c) => {
           minWager: bonus.minWager,
           maxWager: bonus.maxWager,
           status: "open",
+          upNext: false,
           createdAt: new Date().toISOString(),
           resolvedAt: null,
         })

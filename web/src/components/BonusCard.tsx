@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Check, CoinVertical, X } from "@phosphor-icons/react";
+import { Check, CoinVertical, X, Lightning } from "@phosphor-icons/react";
 
 interface Wager {
   userId: string;
@@ -17,6 +17,7 @@ interface BonusEvent {
   minWager?: number;
   maxWager: number;
   status: "open" | "locked" | "resolved";
+  upNext?: boolean;
   createdAt: string;
   resolvedAt: string | null;
   userWager: Wager | null;
@@ -90,9 +91,30 @@ export default function BonusCard({ event, onWager, onCancelWager }: BonusCardPr
     <div
       className="card"
       style={{
-        border: "1px dashed var(--border-gold)",
+        border: event.upNext && event.status === "open"
+          ? "2px solid var(--gold)"
+          : "1px dashed var(--border-gold)",
       }}
     >
+      {/* Closing soon banner */}
+      {event.upNext && event.status === "open" && (
+        <div style={{
+          display: "flex",
+          alignItems: "center",
+          gap: "var(--space-2)",
+          padding: "var(--space-2) var(--space-3)",
+          marginBottom: "var(--space-3)",
+          background: "var(--gold-glow)",
+          borderRadius: "var(--radius-md)",
+          border: "1px solid var(--border-gold)",
+        }}>
+          <Lightning size={16} weight="fill" style={{ color: "var(--gold)" }} />
+          <span style={{ fontSize: "var(--text-sm)", fontWeight: "var(--weight-medium)", color: "var(--gold)" }}>
+            Closing soon — place your wager!
+          </span>
+        </div>
+      )}
+
       {/* Header: question + max wager + status */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "var(--space-3)" }}>
         <div style={{ flex: 1 }}>

@@ -71,6 +71,7 @@ export interface BonusEvent {
   minWager: number;
   maxWager: number;
   status: "open" | "locked" | "resolved";
+  upNext: boolean;
   createdAt: string;
   resolvedAt: string | null;
 }

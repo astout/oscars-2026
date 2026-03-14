@@ -145,6 +145,40 @@ export async function unlockBonusEvent(
   );
 }
 
+export async function unresolveBonusEvent(
+  partyId: string,
+  eventId: string
+): Promise<void> {
+  await db.send(
+    new UpdateCommand({
+      TableName: TABLE_NAME,
+      Key: { PK: `PARTY#${partyId}`, SK: `BONUS#${eventId}` },
+      UpdateExpression: "SET correctAnswer = :ca, #status = :status, resolvedAt = :ra",
+      ExpressionAttributeNames: { "#status": "status" },
+      ExpressionAttributeValues: {
+        ":ca": null,
+        ":status": "open",
+        ":ra": null,
+      },
+    })
+  );
+}
+
+export async function setBonusUpNext(
+  partyId: string,
+  eventId: string,
+  upNext: boolean
+): Promise<void> {
+  await db.send(
+    new UpdateCommand({
+      TableName: TABLE_NAME,
+      Key: { PK: `PARTY#${partyId}`, SK: `BONUS#${eventId}` },
+      UpdateExpression: "SET upNext = :upNext",
+      ExpressionAttributeValues: { ":upNext": upNext },
+    })
+  );
+}
+
 export async function placeWager(
   partyId: string,
   wager: Wager

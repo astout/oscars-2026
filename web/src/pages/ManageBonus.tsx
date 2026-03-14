@@ -12,6 +12,7 @@ import {
   PencilSimple,
   Sparkle,
   Lightning,
+  ArrowCounterClockwise,
 } from "@phosphor-icons/react";
 import { api } from "../api/client.js";
 
@@ -23,6 +24,7 @@ interface BonusEvent {
   minWager?: number;
   maxWager: number;
   status: "open" | "locked" | "resolved";
+  upNext?: boolean;
   createdAt: string;
   resolvedAt: string | null;
 }
@@ -158,12 +160,64 @@ export default function ManageBonus() {
       setEvents((prev) =>
         prev.map((e) =>
           e.eventId === event.eventId
-            ? { ...e, status: action === "lock" ? "locked" : "open" }
+            ? { ...e, status: action === "lock" ? "locked" : "open", upNext: action === "lock" ? false : e.upNext }
             : e
         )
       );
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed");
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const handleToggleUpNext = async (event: BonusEvent) => {
+    if (!partyId) return;
+    const newUpNext = !event.upNext;
+    setActionLoading(`upnext-${event.eventId}`);
+    try {
+      if (canBroadcast) {
+        if (newUpNext) {
+          await api.post(`/parties/${partyId}/bonus/${event.eventId}/broadcast-up-next`);
+        } else {
+          await api.delete(`/parties/${partyId}/bonus/${event.eventId}/broadcast-up-next`);
+        }
+      } else {
+        // Non-emcee hosts: just set locally (no broadcast route needed, direct DB would be needed)
+        // For now, only emcees can set up-next via broadcast
+        return;
+      }
+      setEvents((prev) =>
+        prev.map((e) =>
+          e.eventId === event.eventId
+            ? { ...e, upNext: newUpNext }
+            : newUpNext ? { ...e, upNext: false } : e
+        )
+      );
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed");
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const handleUnresolve = async (eventId: string) => {
+    if (!partyId) return;
+    setActionLoading(`unresolve-${eventId}`);
+    try {
+      const endpoint = canBroadcast
+        ? `/parties/${partyId}/bonus/${eventId}/broadcast-unresolve`
+        : `/parties/${partyId}/bonus/${eventId}/unresolve`;
+      await api.post(endpoint);
+      setEvents((prev) =>
+        prev.map((e) =>
+          e.eventId === eventId
+            ? { ...e, status: "open", correctAnswer: null, resolvedAt: null }
+            : e
+        )
+      );
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to reset");
     } finally {
       setActionLoading(null);
     }
@@ -578,6 +632,16 @@ export default function ManageBonus() {
                         >
                           {event.status === "locked" ? <LockOpen size={16} /> : <Lock size={16} />}
                         </button>
+                        {canBroadcast && event.status === "open" && (
+                          <button
+                            className={`btn ${event.upNext ? "btn-primary" : "btn-ghost"} btn-sm`}
+                            onClick={() => handleToggleUpNext(event)}
+                            disabled={actionLoading === `upnext-${event.eventId}`}
+                            title={event.upNext ? "Clear closing soon" : "Mark closing soon"}
+                          >
+                            <Lightning size={16} weight={event.upNext ? "fill" : "regular"} />
+                          </button>
+                        )}
                         <button
                           className="btn btn-ghost btn-sm"
                           onClick={() => startEdit(event)}
@@ -594,6 +658,17 @@ export default function ManageBonus() {
                           Resolve
                         </button>
                       </>
+                    )}
+                    {event.status === "resolved" && (
+                      <button
+                        className="btn btn-secondary btn-sm"
+                        onClick={() => handleUnresolve(event.eventId)}
+                        disabled={actionLoading === `unresolve-${event.eventId}`}
+                        title="Reset to open"
+                      >
+                        <ArrowCounterClockwise size={14} weight="bold" />
+                        Reset
+                      </button>
                     )}
                     {confirmDelete === event.eventId ? (
                       <div style={{ display: "flex", gap: "var(--space-2)", marginLeft: event.status === "resolved" ? "0" : "auto" }}>
