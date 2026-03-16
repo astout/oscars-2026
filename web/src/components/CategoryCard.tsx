@@ -24,6 +24,7 @@ interface Category {
   showImages: boolean;
   upNext: boolean;
   winnerId: string | null;
+  winnerId2?: string | null;
   locked: boolean;
   resolvedAt: string | null;
   nominees: Nominee[];
@@ -36,18 +37,20 @@ interface CategoryCardProps {
 }
 
 export default function CategoryCard({ category, pick, onSelect }: CategoryCardProps) {
-  const { locked, winnerId, nominees } = category;
+  const { locked, winnerId, winnerId2, nominees } = category;
   const resolved = winnerId !== null;
   const hasPicks = pick !== undefined;
+  const winners = [winnerId, winnerId2].filter(Boolean) as string[];
 
   const winner = resolved ? nominees.find((n) => n.nomineeId === winnerId) : null;
+  const winner2 = winnerId2 ? nominees.find((n) => n.nomineeId === winnerId2) : null;
   const pick1Nominee = hasPicks ? nominees.find((n) => n.nomineeId === pick.pick1NomineeId) : null;
   const pick2Nominee = hasPicks ? nominees.find((n) => n.nomineeId === pick.pick2NomineeId) : null;
 
   const score = resolved
-    ? pick?.pick1NomineeId === winnerId
+    ? pick && winners.includes(pick.pick1NomineeId)
       ? 5
-      : pick?.pick2NomineeId === winnerId
+      : pick && winners.includes(pick.pick2NomineeId)
         ? 3
         : 0
     : null;
@@ -90,7 +93,11 @@ export default function CategoryCard({ category, pick, onSelect }: CategoryCardP
           ) : (
             <Trophy size={18} weight="fill" style={{ color: "var(--gold-vivid)" }} />
           )}
-          <span style={styles.winnerName}>{winner.name}</span>
+          <span style={styles.winnerName}>
+            {winner.name}
+            {winner2 && ` & ${winner2.name}`}
+            {winner2 && <span style={{ fontSize: "var(--text-xs)", color: "var(--text-muted)", fontWeight: "normal" }}> (tie)</span>}
+          </span>
           {score !== null && (
             <span className="mono" style={{ ...styles.score, color: score > 0 ? "var(--status-correct)" : "var(--text-muted)" }}>
               +{score}
