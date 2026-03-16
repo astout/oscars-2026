@@ -42,6 +42,7 @@ export interface Category {
   showImages: boolean;
   upNext: boolean;
   winnerId: string | null;
+  winnerId2?: string | null;
   locked: boolean;
   resolvedAt: string | null;
 }

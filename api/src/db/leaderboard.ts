@@ -70,10 +70,14 @@ async function scorePartyMembers(
     for (const cat of resolvedCategories) {
       const pick = pickMap.get(`${member.userId}:${cat.categoryId}`);
       if (!pick) continue;
-      if (pick.pick1NomineeId === cat.winnerId) {
+      const winners = [cat.winnerId, cat.winnerId2].filter(Boolean) as string[];
+      const pick1Wins = winners.includes(pick.pick1NomineeId);
+      const pick2Wins = winners.includes(pick.pick2NomineeId);
+      // Tie: max 5 pts — 1st pick match takes priority
+      if (pick1Wins) {
         categoryPoints += 5;
         correctFirst++;
-      } else if (pick.pick2NomineeId === cat.winnerId) {
+      } else if (pick2Wins) {
         categoryPoints += 3;
         correctSecond++;
       }
