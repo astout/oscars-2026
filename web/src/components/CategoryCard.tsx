@@ -202,9 +202,8 @@ const styles: Record<string, React.CSSProperties> = {
     fontWeight: "var(--weight-medium)",
     color: "var(--gold-bright)",
     flex: 1,
-    overflow: "hidden",
-    textOverflow: "ellipsis",
-    whiteSpace: "nowrap",
+    minWidth: 0,
+    wordBreak: "break-word",
   },
   score: {
     fontSize: "var(--text-md)",
